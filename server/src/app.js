@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import { registerDeckRoutes } from './routes/decks.js';
+import { registerQuizRoutes } from './routes/quiz.js';
 
 export function buildApp({ visionExtractor } = {}) {
   const app = Fastify({ logger: true });
@@ -22,6 +23,7 @@ export function buildApp({ visionExtractor } = {}) {
   app.get('/health', async () => ({ status: 'ok' }));
 
   app.register(registerDeckRoutes, { prefix: '/api/decks' });
+  app.register(registerQuizRoutes, { prefix: '/api/quiz' });
 
   return app;
 }
