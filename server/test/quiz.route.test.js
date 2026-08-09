@@ -89,3 +89,36 @@ test('POST /api/quiz/check grades a wrong answer and returns 404 for unknown wor
 
   await app.close();
 });
+
+test('POST /api/quiz/check returns 404 (not 500) for a malformed wordId', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/quiz/check',
+    payload: { wordId: 'not-a-valid-id', answer: 'anything' },
+  });
+
+  assert.equal(response.statusCode, 404);
+  assert.deepEqual(JSON.parse(response.body), { error: '단어를 찾을 수 없습니다' });
+
+  await app.close();
+});
+
+test('GET /api/quiz clamps a negative count to a positive default instead of erroring', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const deck = await createDeck('퀴즈덱4');
+  await insertWords(deck.id, [{ word: 'grape', meaning: '포도' }]);
+
+  const response = await app.inject({
+    method: 'GET',
+    url: `/api/quiz?deckId=${deck.id}&count=-5`,
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = JSON.parse(response.body);
+  assert.ok(Array.isArray(body));
+  assert.ok(body.length > 0);
+
+  await app.close();
+});
