@@ -22,7 +22,9 @@
 
 - **스펠링 주관식**: 한글 뜻을 보여주고 영어 단어를 직접 타이핑
   - 재인(recognition)이 아닌 회상(recall) 기반이라 암기 효과가 큼 (객관식 대비 찍기 불가)
-- 채점: 완전 일치 우선, Levenshtein 거리 1~2 이내는 "거의 정답" 처리 (구체 임계값은 구현 단계에서 튜닝)
+- 채점 결과는 3가지 상태로 구분: `correct`(완전 일치), `close`(Levenshtein 거리 1~2, 정답으로 인정하되 UI에 오탈자 표시), `wrong`(그 외)
+  - 점수 집계 시 `correct`와 `close`는 모두 정답으로 카운트
+  - 구체 임계값은 구현 단계에서 튜닝
 
 ## 기술 스택 버전
 
@@ -46,13 +48,14 @@
 - 이미지(base64) + 프롬프트를 Claude에 전달 → 이미지 속 영어단어와 한글 뜻을 JSON 배열로 반환하도록 프롬프트 설계
   - 예: `[{ "word": "apple", "meaning": "사과" }, ...]`
 - 응답 JSON 파싱 실패 시 재시도 1회, 최종 실패 시 에러 반환
+- 프롬프트만으로 JSON을 받는 대신, Claude의 tool-use(강제 도구 호출)를 이용해 구조화된 출력을 받는 방식이 더 안정적이므로 구현 시 우선 검토
 
 ## 데이터 모델 (MongoDB)
 
 ```
 decks
   _id
-  name          // 기본값: 업로드 파일명 또는 생성일 기반 이름
+  name          // 기본값: 업로드된 이미지 파일명(확장자 제외). 파일명이 없으면 "YYYY-MM-DD 단어장" 형식 사용
   createdAt
 
 words
@@ -65,11 +68,24 @@ words
 
 ## API 엔드포인트 (Fastify)
 
-- `POST /api/decks` — 이미지 업로드(multipart) → Claude Vision 호출 → 단어 추출 → deck+words 저장 → 생성된 deck 반환
-- `GET /api/decks` — 단어장 목록 조회
-- `GET /api/decks/:id/words` — 특정 단어장의 단어 목록
-- `GET /api/quiz?deckId=...&count=10` — 해당 deck(또는 전체)에서 랜덤 N개 문제 반환 (meaning만 내려주고 word는 숨김)
-- `POST /api/quiz/check` — `{ wordId, answer }` → Levenshtein 기반 채점 결과(정답 여부, 정답 스펠링) 반환
+- `POST /api/decks` — 이미지 업로드(multipart)
+  - 응답: `{ "id": "...", "name": "...", "words": [{ "id": "...", "word": "apple", "meaning": "사과" }, ...] }`
+  - 단어를 하나도 추출하지 못하면 `422`와 `{ "error": "단어를 찾지 못했습니다" }` 반환, deck 생성 안 함
+- `GET /api/decks` — 단어장 목록 조회. 응답: `[{ "id", "name", "wordCount", "createdAt" }, ...]`
+- `GET /api/decks/:id/words` — 특정 단어장의 단어 목록. 응답: `[{ "id", "word", "meaning" }, ...]`
+- `DELETE /api/decks/:id` — 단어장(및 소속 단어) 삭제. Vision 오인식 등으로 잘못 만들어진 deck을 지우는 용도
+- `GET /api/quiz?deckId=...&count=10` — 해당 deck(또는 `deckId` 생략 시 전체)에서 랜덤 문제 반환
+  - 요청 가능한 최대 개수는 실제 보유 단어 수로 자동 제한 (`count`가 보유 수보다 크면 보유 수만큼 반환)
+  - 응답: `[{ "wordId": "...", "meaning": "사과" }, ...]` (정답 스펠링인 `word`는 내려주지 않음)
+- `POST /api/quiz/check` — 요청 `{ "wordId": "...", "answer": "aple" }`
+  - 응답: `{ "result": "correct" | "close" | "wrong", "correctSpelling": "apple" }`
+
+공통 에러 응답 형식: `{ "error": "사람이 읽을 수 있는 메시지" }` + 적절한 HTTP 상태 코드(400/404/422/500)
+
+### 개발 환경 참고
+
+- Svelte(Vite) 개발 서버와 Fastify API 서버가 별도 포트로 뜨므로, 개발 중에는 Vite의 `server.proxy`로 `/api`를 Fastify로 프록시하거나 Fastify에 `@fastify/cors`를 붙여 CORS 허용
+- 동일 단어가 여러 단어장에 중복 저장되는 것은 MVP에서 허용(중복 제거 로직 없음)
 
 ## 프론트엔드 흐름 (Svelte)
 
