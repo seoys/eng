@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { buildApp } from './app.js';
 import { connectMongo } from './db/mongo.js';
 import { createVisionExtractor } from './services/visionExtract.js';
@@ -7,14 +7,14 @@ import { createVisionExtractor } from './services/visionExtract.js';
 async function main() {
   await connectMongo(process.env.MONGODB_URI);
 
-  const anthropicClient = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-    baseURL: process.env.ANTHROPIC_BASE_URL,
+  const openaiClient = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    baseURL: process.env.OPENAI_BASE_URL,
   });
 
   const visionExtractor = createVisionExtractor({
-    client: anthropicClient,
-    model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5',
+    client: openaiClient,
+    model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
   });
 
   const app = buildApp({ visionExtractor });

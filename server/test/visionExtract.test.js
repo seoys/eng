@@ -4,14 +4,26 @@ import { createVisionExtractor } from '../src/services/visionExtract.js';
 
 function fakeResponse(words) {
   return {
-    content: [{ type: 'tool_use', name: 'extract_words', input: { words } }],
+    choices: [
+      {
+        message: {
+          tool_calls: [
+            {
+              function: { name: 'extract_words', arguments: JSON.stringify({ words }) },
+            },
+          ],
+        },
+      },
+    ],
   };
 }
 
 test('extractWordsFromImage returns parsed words on success', async () => {
   const client = {
-    messages: {
-      create: async () => fakeResponse([{ word: 'apple', meaning: '사과' }]),
+    chat: {
+      completions: {
+        create: async () => fakeResponse([{ word: 'apple', meaning: '사과' }]),
+      },
     },
   };
   const extract = createVisionExtractor({ client, model: 'fake-model' });
@@ -22,13 +34,15 @@ test('extractWordsFromImage returns parsed words on success', async () => {
 
 test('extractWordsFromImage filters out malformed entries', async () => {
   const client = {
-    messages: {
-      create: async () =>
-        fakeResponse([
-          { word: 'apple', meaning: '사과' },
-          { word: '', meaning: '빈값' },
-          { word: 'cat' },
-        ]),
+    chat: {
+      completions: {
+        create: async () =>
+          fakeResponse([
+            { word: 'apple', meaning: '사과' },
+            { word: '', meaning: '빈값' },
+            { word: 'cat' },
+          ]),
+      },
     },
   };
   const extract = createVisionExtractor({ client, model: 'fake-model' });
@@ -40,10 +54,12 @@ test('extractWordsFromImage filters out malformed entries', async () => {
 test('extractWordsFromImage retries once on failure then throws if still failing', async () => {
   let callCount = 0;
   const client = {
-    messages: {
-      create: async () => {
-        callCount += 1;
-        throw new Error('network error');
+    chat: {
+      completions: {
+        create: async () => {
+          callCount += 1;
+          throw new Error('network error');
+        },
       },
     },
   };
@@ -59,11 +75,13 @@ test('extractWordsFromImage retries once on failure then throws if still failing
 test('extractWordsFromImage succeeds on retry after first failure', async () => {
   let callCount = 0;
   const client = {
-    messages: {
-      create: async () => {
-        callCount += 1;
-        if (callCount === 1) throw new Error('transient error');
-        return fakeResponse([{ word: 'dog', meaning: '개' }]);
+    chat: {
+      completions: {
+        create: async () => {
+          callCount += 1;
+          if (callCount === 1) throw new Error('transient error');
+          return fakeResponse([{ word: 'dog', meaning: '개' }]);
+        },
       },
     },
   };
