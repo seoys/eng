@@ -79,3 +79,23 @@ test('deleteDeck removes deck and its words', async () => {
   const words = await getWordsByDeck(deck.id);
   assert.equal(words.length, 0);
 });
+
+test('getRandomWords degrades gracefully when count exceeds available words', async () => {
+  const deck = await createDeck('단어장6');
+  await insertWords(deck.id, [
+    { word: 'small', meaning: '작은' },
+    { word: 'large', meaning: '큰' },
+  ]);
+
+  const sample = await getRandomWords(deck.id, 10);
+  assert.equal(sample.length, 2);
+  assert.ok(sample.every(w => w.meaning && !w.word));
+});
+
+test('getWordsByDeck returns empty array for empty deck', async () => {
+  const deck = await createDeck('단어장7');
+
+  const words = await getWordsByDeck(deck.id);
+  assert.equal(Array.isArray(words), true);
+  assert.equal(words.length, 0);
+});
