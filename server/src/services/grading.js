@@ -21,13 +21,21 @@ export function levenshteinDistance(a, b) {
 }
 
 const CLOSE_DISTANCE_THRESHOLD = 2;
+const SHORT_WORD_CLOSE_DISTANCE_THRESHOLD = 1;
+const SHORT_WORD_MAX_LENGTH = 4;
 
 export function gradeAnswer(correctWord, userAnswer) {
   const normalizedCorrect = correctWord.trim().toLowerCase();
   const normalizedAnswer = userAnswer.trim().toLowerCase();
 
+  if (normalizedAnswer === '') return 'wrong';
   if (normalizedAnswer === normalizedCorrect) return 'correct';
 
+  const threshold =
+    normalizedCorrect.length <= SHORT_WORD_MAX_LENGTH
+      ? SHORT_WORD_CLOSE_DISTANCE_THRESHOLD
+      : CLOSE_DISTANCE_THRESHOLD;
+
   const distance = levenshteinDistance(normalizedAnswer, normalizedCorrect);
-  return distance <= CLOSE_DISTANCE_THRESHOLD ? 'close' : 'wrong';
+  return distance <= threshold ? 'close' : 'wrong';
 }

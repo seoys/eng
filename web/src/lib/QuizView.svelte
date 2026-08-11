@@ -49,7 +49,7 @@
 
     {#if !feedback}
       <input type="text" bind:value={currentAnswer} placeholder="영어 스펠링을 입력하세요" />
-      <button on:click={submitAnswer}>제출</button>
+      <button on:click={submitAnswer} disabled={!currentAnswer.trim()}>제출</button>
     {:else}
       <p class="feedback {feedback.result}">
         {feedback.result === 'wrong' ? '오답' : '정답'} — 정답: {feedback.correctSpelling}
