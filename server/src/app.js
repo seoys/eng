@@ -8,16 +8,22 @@ export function buildApp({ visionExtractor } = {}) {
   const app = Fastify({ logger: true });
 
   app.register(cors, { origin: true });
-  app.register(multipart);
+  app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
 
   app.decorate('visionExtractor', visionExtractor);
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
     const statusCode = error.statusCode || 500;
-    reply
-      .code(statusCode)
-      .send({ error: statusCode === 500 ? '서버 오류가 발생했습니다' : error.message });
+    let message;
+    if (statusCode === 413) {
+      message = '이미지 크기가 너무 큽니다 (최대 10MB)';
+    } else if (statusCode === 500) {
+      message = '서버 오류가 발생했습니다';
+    } else {
+      message = error.message;
+    }
+    reply.code(statusCode).send({ error: message });
   });
 
   app.get('/health', async () => ({ status: 'ok' }));

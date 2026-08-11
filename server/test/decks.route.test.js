@@ -113,6 +113,30 @@ test('POST /api/decks returns 500 when the vision extractor throws', async () =>
   await app.close();
 });
 
+test('POST /api/decks returns 413 with a Korean error message when the file exceeds 10MB', async () => {
+  const app = buildApp({ visionExtractor: async () => [{ word: 'apple', meaning: '사과' }] });
+
+  const form = new FormData();
+  form.append('file', Buffer.alloc(11 * 1024 * 1024), {
+    filename: 'huge.png',
+    contentType: 'image/png',
+  });
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: form.getHeaders(),
+  });
+
+  assert.equal(response.statusCode, 413);
+  const body = JSON.parse(response.body);
+  assert.ok(body.error);
+  assert.ok(!/^[\x00-\x7F]*$/.test(body.error), 'expected a non-English (Korean) error message');
+
+  await app.close();
+});
+
 test('DELETE /api/decks/:id returns 404 when the deck does not exist', async () => {
   const app = buildApp({ visionExtractor: async () => [] });
 
