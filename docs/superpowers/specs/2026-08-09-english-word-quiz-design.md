@@ -1,3 +1,5 @@
+> **Note (post-implementation)**: the LLM provider was corrected from Anthropic to an OpenAI-compatible Chat Completions API during implementation; the root `README.md` documents the current setup.
+
 # 영어단어 이미지 퀴즈 앱 — 설계안
 
 - 날짜: 2026-08-09
