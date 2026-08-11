@@ -10,14 +10,21 @@
   let feedback = null;
   let correctCount = 0;
   let loading = true;
+  let errorMessage = '';
 
   async function loadQuiz() {
     loading = true;
-    questions = await fetchQuiz(deckId, 10);
-    currentIndex = 0;
-    correctCount = 0;
-    feedback = null;
-    loading = false;
+    errorMessage = '';
+    try {
+      questions = await fetchQuiz(deckId, 10);
+      currentIndex = 0;
+      correctCount = 0;
+      feedback = null;
+    } catch (error) {
+      errorMessage = error.message;
+    } finally {
+      loading = false;
+    }
   }
 
   loadQuiz();
@@ -25,9 +32,13 @@
   $: currentQuestion = questions[currentIndex];
 
   async function submitAnswer() {
-    const result = await checkAnswer(currentQuestion.wordId, currentAnswer);
-    feedback = result;
-    if (result.result !== 'wrong') correctCount += 1;
+    try {
+      const result = await checkAnswer(currentQuestion.wordId, currentAnswer);
+      feedback = result;
+      if (result.result !== 'wrong') correctCount += 1;
+    } catch (error) {
+      errorMessage = error.message;
+    }
   }
 
   function nextQuestion() {
@@ -40,6 +51,10 @@
     }
   }
 </script>
+
+{#if errorMessage}
+  <p class="error">{errorMessage}</p>
+{/if}
 
 {#if loading}
   <p>문제를 불러오는 중...</p>
@@ -59,7 +74,7 @@
 
     <p class="progress">{currentIndex + 1} / {questions.length}</p>
   </div>
-{:else}
+{:else if !errorMessage}
   <p>이 단어장에는 문제를 낼 단어가 없습니다.</p>
 {/if}
 
@@ -69,6 +84,9 @@
     color: seagreen;
   }
   .feedback.wrong {
+    color: crimson;
+  }
+  .error {
     color: crimson;
   }
 </style>
