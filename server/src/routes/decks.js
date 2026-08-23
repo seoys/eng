@@ -10,21 +10,30 @@ import { insertWords, getWordsByDeck } from '../models/words.js';
 
 export async function registerDeckRoutes(app) {
   app.post('/', { preHandler: app.authenticate }, async (request, reply) => {
-    const file = await request.file();
-    if (!file) {
+    const files = [];
+    for await (const file of request.files()) {
+      files.push({ filename: file.filename, buffer: await file.toBuffer(), mimetype: file.mimetype });
+    }
+
+    if (files.length === 0) {
       reply.code(400);
       return { error: '이미지 파일이 필요합니다' };
     }
 
-    const buffer = await file.toBuffer();
-    const base64 = buffer.toString('base64');
-    const mediaType = file.mimetype;
+    const extractedWords = [];
+    let failureCount = 0;
+    for (const file of files) {
+      try {
+        const base64 = file.buffer.toString('base64');
+        const words = await app.visionExtractor(base64, file.mimetype);
+        extractedWords.push(...words);
+      } catch (error) {
+        app.log.error(error);
+        failureCount += 1;
+      }
+    }
 
-    let extractedWords;
-    try {
-      extractedWords = await app.visionExtractor(base64, mediaType);
-    } catch (error) {
-      app.log.error(error);
+    if (failureCount === files.length) {
       reply.code(500);
       return { error: '이미지 분석에 실패했습니다' };
     }
@@ -34,8 +43,11 @@ export async function registerDeckRoutes(app) {
       return { error: '단어를 찾지 못했습니다' };
     }
 
-    const name = file.filename
-      ? file.filename.replace(/\.[^.]+$/, '')
+    const firstName = files[0].filename ? files[0].filename.replace(/\.[^.]+$/, '') : null;
+    const name = firstName
+      ? files.length > 1
+        ? `${firstName} 외 ${files.length - 1}장`
+        : firstName
       : `${new Date().toISOString().slice(0, 10)} 단어장`;
 
     const deck = await createDeck(name, request.userId);

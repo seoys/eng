@@ -12,15 +12,15 @@
   let previewWords = [];
   let dragOver = false;
 
-  async function handleFile(file) {
-    if (!file) return;
+  async function handleFiles(files) {
+    if (!files || files.length === 0) return;
 
     uploading = true;
     errorMessage = '';
     previewWords = [];
 
     try {
-      const deck = await uploadDeck(file);
+      const deck = await uploadDeck(files);
       previewWords = deck.words;
       onUploaded(deck);
     } catch (error) {
@@ -31,14 +31,14 @@
   }
 
   function handleFileChange(event) {
-    handleFile(event.target.files[0]);
+    handleFiles([...event.target.files]);
     event.target.value = '';
   }
 
   function handleDrop(event) {
     event.preventDefault();
     dragOver = false;
-    handleFile(event.dataTransfer.files[0]);
+    handleFiles([...event.dataTransfer.files]);
   }
 </script>
 
@@ -56,7 +56,7 @@
   </span>
 
   <h2>새 단어 카드 만들기</h2>
-  <p class="hint">영어 단어가 담긴 사진을 붙여넣으면, 단어와 뜻을 자동으로 옮겨 적어드려요.</p>
+  <p class="hint">영어 단어가 담긴 사진을 붙여넣으면, 단어와 뜻을 자동으로 옮겨 적어드려요. 여러 장을 한 번에 골라도 하나의 단어장으로 모아드려요.</p>
 
   <label
     class="dropzone"
@@ -72,6 +72,7 @@
     <input
       type="file"
       accept="image/png,image/jpeg"
+      multiple
       on:change={handleFileChange}
       disabled={uploading}
     />
@@ -86,7 +87,7 @@
       <span>단어를 찾고 있어요...</span>
     {:else}
       <span class="plus" aria-hidden="true">＋</span>
-      <span>사진 선택 또는 여기에 끌어놓기</span>
+      <span>사진 선택 또는 여기에 끌어놓기 (여러 장 가능)</span>
     {/if}
   </label>
 

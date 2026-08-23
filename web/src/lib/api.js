@@ -46,9 +46,11 @@ export async function login({ name, birthDate, password }) {
   return body;
 }
 
-export async function uploadDeck(file) {
+export async function uploadDeck(files) {
   const formData = new FormData();
-  formData.append('file', file);
+  for (const file of files) {
+    formData.append('file', file);
+  }
   const response = await fetch(`${BASE_URL}/decks`, {
     method: 'POST',
     headers: authHeader(),

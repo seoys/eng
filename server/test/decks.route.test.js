@@ -395,3 +395,90 @@ test('GET /api/decks respects a custom pageSize and clamps out-of-range values',
 
   await app.close();
 });
+
+test('POST /api/decks merges words from multiple images into a single deck', async () => {
+  const app = buildApp({
+    visionExtractor: async (base64) => {
+      if (base64 === Buffer.from('page-one').toString('base64')) {
+        return [{ word: 'apple', meaning: '사과' }];
+      }
+      return [{ word: 'banana', meaning: '바나나' }];
+    },
+  });
+  const { authHeaders } = await registerTestUser(app);
+
+  const form = new FormData();
+  form.append('file', Buffer.from('page-one'), { filename: 'p1.png', contentType: 'image/png' });
+  form.append('file', Buffer.from('page-two'), { filename: 'p2.png', contentType: 'image/png' });
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: { ...form.getHeaders(), ...authHeaders },
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = JSON.parse(response.body);
+  assert.equal(body.name, 'p1 외 1장');
+  assert.deepEqual(
+    body.words.map((w) => w.word).sort(),
+    ['apple', 'banana'],
+  );
+
+  await app.close();
+});
+
+test('POST /api/decks skips a failing image and still builds the deck from the rest', async () => {
+  const app = buildApp({
+    visionExtractor: async (base64) => {
+      if (base64 === Buffer.from('bad-page').toString('base64')) {
+        throw new Error('vision boom');
+      }
+      return [{ word: 'grape', meaning: '포도' }];
+    },
+  });
+  const { authHeaders } = await registerTestUser(app);
+
+  const form = new FormData();
+  form.append('file', Buffer.from('good-page'), { filename: 'good.png', contentType: 'image/png' });
+  form.append('file', Buffer.from('bad-page'), { filename: 'bad.png', contentType: 'image/png' });
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: { ...form.getHeaders(), ...authHeaders },
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = JSON.parse(response.body);
+  assert.equal(body.words.length, 1);
+  assert.equal(body.words[0].word, 'grape');
+
+  await app.close();
+});
+
+test('POST /api/decks returns 500 when every image in a multi-image upload fails', async () => {
+  const app = buildApp({
+    visionExtractor: async () => {
+      throw new Error('vision boom');
+    },
+  });
+  const { authHeaders } = await registerTestUser(app);
+
+  const form = new FormData();
+  form.append('file', Buffer.from('bad-one'), { filename: 'bad1.png', contentType: 'image/png' });
+  form.append('file', Buffer.from('bad-two'), { filename: 'bad2.png', contentType: 'image/png' });
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: { ...form.getHeaders(), ...authHeaders },
+  });
+
+  assert.equal(response.statusCode, 500);
+
+  await app.close();
+});
