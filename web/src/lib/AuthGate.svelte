@@ -33,7 +33,7 @@
     <form on:submit={handleSubmit}>
       <label>
         <span>이름</span>
-        <input type="text" bind:value={name} placeholder="홍길동" autocomplete="name" required />
+        <input type="text" bind:value={name} autocomplete="name" required />
       </label>
 
       <label>
