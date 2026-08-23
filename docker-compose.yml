@@ -1,0 +1,14 @@
+services:
+  eng-quiz:
+    build: .
+    container_name: eng-quiz
+    restart: unless-stopped
+    ports:
+      - "9999:9999"
+    environment:
+      PORT: 9999
+      MONGODB_URI: ${MONGODB_URI}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      JWT_SECRET: ${JWT_SECRET}

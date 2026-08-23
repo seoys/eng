@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 import { registerDeckRoutes } from './routes/decks.js';
 import { registerQuizRoutes } from './routes/quiz.js';
 import { registerAuthRoutes } from './routes/auth.js';
@@ -12,7 +13,7 @@ import { verifyToken } from './services/auth.js';
 
 const DEV_JWT_SECRET = 'insecure-dev-secret-change-me';
 
-export function buildApp({ visionExtractor, jwtSecret = DEV_JWT_SECRET } = {}) {
+export function buildApp({ visionExtractor, jwtSecret = DEV_JWT_SECRET, staticDir } = {}) {
   const app = Fastify({ logger: true });
 
   app.register(cors, { origin: true });
@@ -57,6 +58,18 @@ export function buildApp({ visionExtractor, jwtSecret = DEV_JWT_SECRET } = {}) {
   app.register(registerChallengeRoutes, { prefix: '/api/challenges' });
   app.register(registerUserRoutes, { prefix: '/api/users' });
   app.register(registerAchievementRoutes, { prefix: '/api/achievements' });
+
+  if (staticDir) {
+    app.register(fastifyStatic, { root: staticDir, index: 'index.html' });
+
+    app.setNotFoundHandler((request, reply) => {
+      if (request.raw.url.startsWith('/api')) {
+        reply.code(404).send({ error: '요청한 API를 찾을 수 없습니다' });
+        return;
+      }
+      reply.sendFile('index.html');
+    });
+  }
 
   return app;
 }

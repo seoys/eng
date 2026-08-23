@@ -49,3 +49,23 @@ npm test
 ## LLM provider note
 
 The app talks to an **OpenAI-compatible Chat Completions API** for image word extraction (not Anthropic/Claude). Configure it via the `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL` environment variables in `server/.env`.
+
+## Deploy with Docker
+
+The `Dockerfile` builds the Svelte frontend into static assets and bundles them into the Fastify server image, so **only one container and one port** are needed in production — the API server serves both `/api/*` and the built frontend from the same origin.
+
+```bash
+cp .env.example .env
+# edit .env with real values (MongoDB URI, OpenAI-compatible API key, JWT secret)
+
+docker compose up -d --build
+```
+
+The app is then reachable at `http://<host>:9999` (the container listens on port 9999, set via `PORT` in `docker-compose.yml`). MongoDB is expected to already be reachable at the `MONGODB_URI` you provide (e.g. a separate container or NAS package) — it is not bundled in this compose file.
+
+To build/run without compose:
+
+```bash
+docker build -t eng-quiz .
+docker run -d --name eng-quiz -p 9999:9999 --env-file .env eng-quiz
+```
