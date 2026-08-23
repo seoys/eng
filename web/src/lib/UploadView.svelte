@@ -1,6 +1,7 @@
 <script>
   import { uploadDeck } from './api.js';
   import { getPreviewEmoji } from './wordAnimations.js';
+  import { canSpeak, speakWord } from './speech.js';
 
   export let onUploaded = () => {};
 
@@ -97,6 +98,16 @@
     <ul class="preview">
       {#each previewWords as word (word.id)}
         <li>
+          {#if canSpeak()}
+            <button
+              class="speak"
+              type="button"
+              aria-label="{word.word} 발음 듣기"
+              on:click={() => speakWord(word.word)}
+            >
+              🔊
+            </button>
+          {/if}
           <span class="w">{word.word}</span>
           <span class="m">{word.meaning}</span>
           {#if getPreviewEmoji(word.animation)}
@@ -253,5 +264,21 @@
   .anim-tag {
     flex-shrink: 0;
     font-size: 15px;
+  }
+
+  .speak {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0 2px;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.75;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .speak:hover {
+    opacity: 1;
+    transform: scale(1.15);
   }
 </style>

@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { fetchMistakes } from './api.js';
+  import { canSpeak, speakWord } from './speech.js';
 
   export let onBack = () => {};
   export let onRetry = () => {};
@@ -45,6 +46,16 @@
   <ul class="list">
     {#each mistakes as mistake (mistake.wordId)}
       <li class="row">
+        {#if canSpeak()}
+          <button
+            class="speak"
+            type="button"
+            aria-label="{mistake.word} 발음 듣기"
+            on:click={() => speakWord(mistake.word)}
+          >
+            🔊
+          </button>
+        {/if}
         <span class="word">{mistake.word}</span>
         <span class="meaning">{mistake.meaning}</span>
       </li>
@@ -129,6 +140,22 @@
     gap: 12px;
     background: var(--card);
     padding: 12px 16px;
+  }
+
+  .speak {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0.75;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .speak:hover {
+    opacity: 1;
+    transform: scale(1.15);
   }
 
   .word {
