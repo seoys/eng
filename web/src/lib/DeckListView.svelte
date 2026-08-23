@@ -49,9 +49,11 @@
     }
   }
 
-  async function handleDelete(event, deckId) {
+  async function handleDelete(event, deck) {
     event.stopPropagation();
-    await deleteDeck(deckId);
+    if (!confirm(`"${deck.name}" 단어장을 삭제하시겠습니까? 안에 있는 단어와 기록도 함께 사라져요.`)) return;
+
+    await deleteDeck(deck.id);
     await loadDecks();
   }
 
@@ -166,7 +168,7 @@
               class="delete"
               type="button"
               aria-label="{deck.name} 삭제"
-              on:click={(e) => handleDelete(e, deck.id)}
+              on:click={(e) => handleDelete(e, deck)}
             >
               ✕
             </button>
