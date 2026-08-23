@@ -56,16 +56,20 @@ export async function getWeeklyLeaderboard(limit = 10) {
   const results = await collection()
     .aggregate([
       { $match: { createdAt: { $gte: weekStart } } },
-      { $sort: { score: -1, createdAt: 1 } },
+      // Rank by raw correct-answer count, not percentage — a 19/20 result
+      // is a stronger showing than a 1/1, even though 1/1 scores "higher".
+      { $sort: { correct: -1, total: -1, createdAt: 1 } },
       {
         $group: {
           _id: '$userId',
+          bestCorrect: { $first: '$correct' },
+          bestTotal: { $first: '$total' },
           bestScore: { $first: '$score' },
           quizCount: { $sum: 1 },
           achievedAt: { $first: '$createdAt' },
         },
       },
-      { $sort: { bestScore: -1, achievedAt: 1 } },
+      { $sort: { bestCorrect: -1, bestTotal: -1, achievedAt: 1 } },
       { $limit: limit },
     ])
     .toArray();
@@ -82,6 +86,8 @@ export async function getWeeklyLeaderboard(limit = 10) {
   return results.map((r) => ({
     userId: r._id.toString(),
     name: nameById.get(r._id.toString()) ?? '알 수 없음',
+    bestCorrect: r.bestCorrect,
+    bestTotal: r.bestTotal,
     bestScore: r.bestScore,
     quizCount: r.quizCount,
   }));

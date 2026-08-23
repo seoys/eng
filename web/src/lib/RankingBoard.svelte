@@ -35,7 +35,7 @@
         <li class:me={row.userId === myUserId} class:champion={i === 0}>
           <span class="rank">{MEDAL[i] ?? i + 1}</span>
           <span class="name">{row.name}{row.userId === myUserId ? ' (나)' : ''}</span>
-          <span class="score">{row.bestScore}점</span>
+          <span class="score">{row.bestCorrect}/{row.bestTotal}개 정답</span>
           <span class="count">{row.quizCount}회 도전</span>
         </li>
       {/each}

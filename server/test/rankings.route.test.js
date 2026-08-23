@@ -54,10 +54,60 @@ test('GET /api/rankings/weekly ranks users by their best score this week', async
   const board = JSON.parse(response.body);
 
   assert.equal(board[0].name, '앨리스');
+  assert.equal(board[0].bestCorrect, 9);
+  assert.equal(board[0].bestTotal, 10);
   assert.equal(board[0].bestScore, 90);
   assert.equal(board[0].quizCount, 2);
   assert.equal(board[1].name, '밥');
+  assert.equal(board[1].bestCorrect, 6);
   assert.equal(board[1].bestScore, 60);
+
+  await app.close();
+});
+
+test('a lower-percentage result with more correct answers outranks a small perfect score', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const alice = await registerTestUser(app, { name: '앨리스' });
+  const bob = await registerTestUser(app, { name: '밥' });
+  const deck = await createDeck('랭킹덱2', alice.userId);
+  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await app.inject({ method: 'POST', url: `/api/decks/${deck.id}/share`, headers: alice.authHeaders });
+
+  // Bob: 1/1 = 100% but only one correct answer.
+  await playQuiz(app, bob.authHeaders, deck.id, 1, 1);
+  // Alice: 19/20 = 95% but many more correct answers.
+  await playQuiz(app, alice.authHeaders, deck.id, 19, 20);
+
+  const response = await app.inject({ method: 'GET', url: '/api/rankings/weekly', headers: alice.authHeaders });
+  const board = JSON.parse(response.body);
+
+  assert.equal(board[0].name, '앨리스', '19 correct answers should outrank 1, despite the lower percentage');
+  assert.equal(board[0].bestCorrect, 19);
+  assert.equal(board[1].name, '밥');
+  assert.equal(board[1].bestCorrect, 1);
+
+  await app.close();
+});
+
+test('ties on correct count are broken by whoever attempted more questions', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const alice = await registerTestUser(app, { name: '앨리스' });
+  const bob = await registerTestUser(app, { name: '밥' });
+  const deck = await createDeck('랭킹덱3', alice.userId);
+  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await app.inject({ method: 'POST', url: `/api/decks/${deck.id}/share`, headers: alice.authHeaders });
+
+  // Both got 15 correct, but Alice attempted more questions to get there.
+  await playQuiz(app, bob.authHeaders, deck.id, 15, 15);
+  await playQuiz(app, alice.authHeaders, deck.id, 15, 20);
+
+  const response = await app.inject({ method: 'GET', url: '/api/rankings/weekly', headers: alice.authHeaders });
+  const board = JSON.parse(response.body);
+
+  assert.equal(board[0].name, '앨리스');
+  assert.equal(board[0].bestTotal, 20);
+  assert.equal(board[1].name, '밥');
+  assert.equal(board[1].bestTotal, 15);
 
   await app.close();
 });
