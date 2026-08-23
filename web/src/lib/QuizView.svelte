@@ -2,7 +2,6 @@
   import { onDestroy } from 'svelte';
   import { fetchQuiz, fetchMistakeQuiz, checkAnswer, submitQuizResult } from './api.js';
   import { getTextAnimationClass } from './wordAnimations.js';
-  import { canSpeak, speakWord } from './speech.js';
 
   export let deckId;
   export let source = undefined;
@@ -113,16 +112,6 @@
         <span class="stamp-text">{FEEDBACK_LABEL[feedback.result]}</span>
         {#if feedback.result !== 'correct'}
           <span class="stamp-answer">{feedback.correctSpelling}</span>
-        {/if}
-        {#if canSpeak()}
-          <button
-            class="speak"
-            type="button"
-            aria-label="{feedback.correctSpelling} 발음 듣기"
-            on:click={() => speakWord(feedback.correctSpelling)}
-          >
-            🔊
-          </button>
         {/if}
       </div>
     {/if}
@@ -491,23 +480,6 @@
     text-transform: none;
     letter-spacing: 0;
     margin-top: 4px;
-  }
-
-  .stamp .speak {
-    margin-top: 4px;
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 15px;
-    line-height: 1;
-    rotate: 9deg;
-    opacity: 0.8;
-    transition: opacity 0.15s ease, transform 0.15s ease;
-  }
-
-  .stamp .speak:hover {
-    opacity: 1;
-    transform: scale(1.15);
   }
 
   @keyframes stamp-down {
