@@ -12,3 +12,9 @@ services:
       OPENAI_BASE_URL: ${OPENAI_BASE_URL}
       OPENAI_MODEL: ${OPENAI_MODEL}
       JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - mongo_4_2_default
+
+networks:
+  mongo_4_2_default:
+    external: true
