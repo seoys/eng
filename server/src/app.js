@@ -4,6 +4,10 @@ import multipart from '@fastify/multipart';
 import { registerDeckRoutes } from './routes/decks.js';
 import { registerQuizRoutes } from './routes/quiz.js';
 import { registerAuthRoutes } from './routes/auth.js';
+import { registerRankingRoutes } from './routes/rankings.js';
+import { registerChallengeRoutes } from './routes/challenges.js';
+import { registerUserRoutes } from './routes/users.js';
+import { registerAchievementRoutes } from './routes/achievements.js';
 import { verifyToken } from './services/auth.js';
 
 const DEV_JWT_SECRET = 'insecure-dev-secret-change-me';
@@ -49,6 +53,10 @@ export function buildApp({ visionExtractor, jwtSecret = DEV_JWT_SECRET } = {}) {
   app.register(registerAuthRoutes, { prefix: '/api/auth', jwtSecret });
   app.register(registerDeckRoutes, { prefix: '/api/decks' });
   app.register(registerQuizRoutes, { prefix: '/api/quiz' });
+  app.register(registerRankingRoutes, { prefix: '/api/rankings' });
+  app.register(registerChallengeRoutes, { prefix: '/api/challenges' });
+  app.register(registerUserRoutes, { prefix: '/api/users' });
+  app.register(registerAchievementRoutes, { prefix: '/api/achievements' });
 
   return app;
 }

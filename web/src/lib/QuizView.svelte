@@ -1,6 +1,6 @@
 <script>
   import { onDestroy } from 'svelte';
-  import { fetchQuiz, checkAnswer } from './api.js';
+  import { fetchQuiz, checkAnswer, submitQuizResult } from './api.js';
   import { getTextAnimationClass } from './wordAnimations.js';
 
   export let deckId;
@@ -59,6 +59,7 @@
     if (currentIndex + 1 < questions.length) {
       currentIndex += 1;
     } else {
+      submitQuizResult(deckId, correctCount, questions.length).catch(() => {});
       onFinish({ total: questions.length, correct: correctCount });
     }
   }

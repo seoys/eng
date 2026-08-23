@@ -3,12 +3,17 @@
   import DeckListView from './lib/DeckListView.svelte';
   import QuizView from './lib/QuizView.svelte';
   import AuthGate from './lib/AuthGate.svelte';
+  import RankingBoard from './lib/RankingBoard.svelte';
+  import ChallengeInbox from './lib/ChallengeInbox.svelte';
+  import AchievementsPage from './lib/AchievementsPage.svelte';
   import { getAuth, clearAuth } from './lib/api.js';
 
   let auth = getAuth();
   let view = 'list';
   let activeDeckId = null;
   let deckListRef;
+  let rankingRef;
+  let challengeInboxRef;
   let lastScore = null;
 
   function handleAuthenticated(newAuth) {
@@ -33,9 +38,16 @@
     view = 'quiz';
   }
 
+  function handleStartChallenge(deckId) {
+    activeDeckId = deckId;
+    view = 'quiz';
+  }
+
   function handleFinish(score) {
     lastScore = score;
     view = 'list';
+    rankingRef?.refresh();
+    challengeInboxRef?.refresh();
   }
 
   function handleBack() {
@@ -71,6 +83,9 @@
         <p class="cover-sub">사진 속 단어를 모으고, 스펠링으로 복습해요</p>
         <div class="owner-row">
           <span class="owner">{auth.user.name}님의 수첩</span>
+          <button class="badges-link" type="button" on:click={() => (view = 'achievements')}>
+            🎖️ 달성 기록
+          </button>
           <button class="logout" type="button" on:click={handleLogout}>로그아웃</button>
         </div>
       </div>
@@ -88,9 +103,15 @@
           </div>
         {/if}
 
+        <ChallengeInbox bind:this={challengeInboxRef} onStartChallenge={handleStartChallenge} />
+
+        <RankingBoard bind:this={rankingRef} myUserId={auth.user.id} />
+
         <DeckListView bind:this={deckListRef} onSelectDeck={handleSelectDeck} />
       {:else if view === 'quiz'}
         <QuizView deckId={activeDeckId} onFinish={handleFinish} onBack={handleBack} />
+      {:else if view === 'achievements'}
+        <AchievementsPage onBack={handleBack} />
       {/if}
     </main>
   </div>
@@ -161,6 +182,19 @@
     font-family: var(--font-script);
     font-size: 16px;
     color: var(--ink);
+  }
+
+  .badges-link {
+    background: none;
+    border: none;
+    font-family: var(--font-hand);
+    font-size: 13px;
+    color: var(--gold);
+    padding: 0;
+  }
+
+  .badges-link:hover {
+    text-decoration: underline;
   }
 
   .logout {

@@ -23,3 +23,12 @@ export async function findUserById(id) {
   if (!doc) return null;
   return { id: doc._id.toString(), name: doc.name, birthDate: doc.birthDate };
 }
+
+export async function listOtherUsers(excludeUserId) {
+  const docs = await collection()
+    .find({ _id: { $ne: new ObjectId(excludeUserId) } })
+    .project({ name: 1 })
+    .sort({ name: 1 })
+    .toArray();
+  return docs.map((doc) => ({ id: doc._id.toString(), name: doc.name }));
+}

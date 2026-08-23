@@ -49,7 +49,23 @@ export async function registerDeckRoutes(app) {
       listDecks(request.userId),
       listSharedDecks(request.userId),
     ]);
-    return [...own, ...shared];
+    const all = [...own, ...shared].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+
+    const page = Math.max(1, Number.parseInt(request.query.page, 10) || 1);
+    const pageSize = Math.min(50, Math.max(1, Number.parseInt(request.query.pageSize, 10) || 8));
+    const total = all.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const start = (page - 1) * pageSize;
+
+    return {
+      items: all.slice(start, start + pageSize),
+      total,
+      page,
+      pageSize,
+      totalPages,
+    };
   });
 
   app.post('/:id/share', { preHandler: app.authenticate }, async (request, reply) => {

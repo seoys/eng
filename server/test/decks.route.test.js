@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import { buildApp } from '../src/app.js';
 import { connectMongo, closeMongo, getDb } from '../src/db/mongo.js';
 import { registerTestUser } from './testUtils.js';
+import { createDeck } from '../src/models/decks.js';
 
 const TEST_URI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/eng_quiz_test';
 
@@ -203,8 +204,9 @@ test('GET /api/decks lists created decks and DELETE removes them', async () => {
 
   const listResponse = await app.inject({ method: 'GET', url: '/api/decks', headers: authHeaders });
   const list = JSON.parse(listResponse.body);
-  assert.equal(list.length, 1);
-  assert.equal(list[0].wordCount, 1);
+  assert.equal(list.items.length, 1);
+  assert.equal(list.total, 1);
+  assert.equal(list.items[0].wordCount, 1);
 
   const deleteResponse = await app.inject({
     method: 'DELETE',
@@ -216,7 +218,7 @@ test('GET /api/decks lists created decks and DELETE removes them', async () => {
   const listAfterDelete = JSON.parse(
     (await app.inject({ method: 'GET', url: '/api/decks', headers: authHeaders })).body,
   );
-  assert.equal(listAfterDelete.length, 0);
+  assert.equal(listAfterDelete.items.length, 0);
 
   await app.close();
 });
@@ -241,7 +243,7 @@ test('a deck created by one user is invisible to another user', async () => {
   const listAsB = JSON.parse(
     (await app.inject({ method: 'GET', url: '/api/decks', headers: userB.authHeaders })).body,
   );
-  assert.equal(listAsB.length, 0);
+  assert.equal(listAsB.items.length, 0);
 
   await app.close();
 });
@@ -270,7 +272,7 @@ test('sharing a deck makes it visible to other users with the owner name attache
   const beforeShare = JSON.parse(
     (await app.inject({ method: 'GET', url: '/api/decks', headers: viewer.authHeaders })).body,
   );
-  assert.equal(beforeShare.length, 0);
+  assert.equal(beforeShare.items.length, 0);
 
   const shareResponse = await app.inject({
     method: 'POST',
@@ -282,8 +284,8 @@ test('sharing a deck makes it visible to other users with the owner name attache
   const afterShare = JSON.parse(
     (await app.inject({ method: 'GET', url: '/api/decks', headers: viewer.authHeaders })).body,
   );
-  assert.equal(afterShare.length, 1);
-  assert.equal(afterShare[0].ownerName, '공유자');
+  assert.equal(afterShare.items.length, 1);
+  assert.equal(afterShare.items[0].ownerName, '공유자');
 
   const wordsResponse = await app.inject({
     method: 'GET',
@@ -323,6 +325,73 @@ test('POST /api/decks/:id/share returns 404 for a deck you do not own', async ()
     headers: other.authHeaders,
   });
   assert.equal(response.statusCode, 404);
+
+  await app.close();
+});
+
+test('GET /api/decks paginates with a default page size of 8', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const { userId, authHeaders } = await registerTestUser(app);
+
+  for (let i = 0; i < 10; i += 1) {
+    await createDeck(`덱${i}`, userId);
+  }
+
+  const firstPage = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/decks', headers: authHeaders })).body,
+  );
+  assert.equal(firstPage.items.length, 8);
+  assert.equal(firstPage.total, 10);
+  assert.equal(firstPage.page, 1);
+  assert.equal(firstPage.pageSize, 8);
+  assert.equal(firstPage.totalPages, 2);
+
+  const secondPage = JSON.parse(
+    (
+      await app.inject({ method: 'GET', url: '/api/decks?page=2', headers: authHeaders })
+    ).body,
+  );
+  assert.equal(secondPage.items.length, 2);
+  assert.equal(secondPage.page, 2);
+
+  const overflowIds = new Set([...firstPage.items, ...secondPage.items].map((d) => d.id));
+  assert.equal(overflowIds.size, 10, 'pages should not overlap or duplicate decks');
+
+  await app.close();
+});
+
+test('GET /api/decks respects a custom pageSize and clamps out-of-range values', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const { userId, authHeaders } = await registerTestUser(app);
+
+  for (let i = 0; i < 5; i += 1) {
+    await createDeck(`덱${i}`, userId);
+  }
+
+  const customPage = JSON.parse(
+    (
+      await app.inject({
+        method: 'GET',
+        url: '/api/decks?page=1&pageSize=3',
+        headers: authHeaders,
+      })
+    ).body,
+  );
+  assert.equal(customPage.items.length, 3);
+  assert.equal(customPage.totalPages, 2);
+
+  const invalidPage = JSON.parse(
+    (
+      await app.inject({
+        method: 'GET',
+        url: '/api/decks?page=0&pageSize=-5',
+        headers: authHeaders,
+      })
+    ).body,
+  );
+  assert.equal(invalidPage.page, 1);
+  assert.ok(invalidPage.pageSize >= 1);
+  assert.equal(invalidPage.items.length, invalidPage.pageSize);
 
   await app.close();
 });

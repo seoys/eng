@@ -17,6 +17,7 @@ beforeEach(async () => {
   await db.collection('decks').deleteMany({});
   await db.collection('words').deleteMany({});
   await db.collection('users').deleteMany({});
+  await db.collection('quiz_results').deleteMany({});
 });
 
 after(async () => {
@@ -186,6 +187,60 @@ test('a shared deck is quizzable and checkable by another user', async () => {
   });
   assert.equal(checkResponse.statusCode, 200);
   assert.equal(JSON.parse(checkResponse.body).result, 'correct');
+
+  await app.close();
+});
+
+test('POST /api/quiz/results records a score for an accessible deck', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const { userId, authHeaders } = await registerTestUser(app);
+  const deck = await createDeck('결과덱', userId);
+  await insertWords(deck.id, [{ word: 'grape', meaning: '포도' }], userId);
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 7, total: 10 },
+    headers: authHeaders,
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(JSON.parse(response.body), { score: 70, correct: 7, total: 10 });
+
+  await app.close();
+});
+
+test('POST /api/quiz/results returns 404 for a deck you cannot access', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const owner = await registerTestUser(app);
+  const other = await registerTestUser(app);
+  const deck = await createDeck('비공개결과덱', owner.userId);
+  await insertWords(deck.id, [{ word: 'grape', meaning: '포도' }], owner.userId);
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 1, total: 1 },
+    headers: other.authHeaders,
+  });
+
+  assert.equal(response.statusCode, 404);
+
+  await app.close();
+});
+
+test('POST /api/quiz/results returns 400 for a malformed payload', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const { authHeaders } = await registerTestUser(app);
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: 'not-real', correct: 'seven', total: 10 },
+    headers: authHeaders,
+  });
+
+  assert.equal(response.statusCode, 400);
 
   await app.close();
 });

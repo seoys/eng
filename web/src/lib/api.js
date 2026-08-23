@@ -57,8 +57,9 @@ export async function uploadDeck(file) {
   return handleResponse(response);
 }
 
-export async function fetchDecks() {
-  const response = await fetch(`${BASE_URL}/decks`, { headers: authHeader() });
+export async function fetchDecks(page = 1, pageSize = 8) {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  const response = await fetch(`${BASE_URL}/decks?${params}`, { headers: authHeader() });
   return handleResponse(response);
 }
 
@@ -90,6 +91,44 @@ export async function checkAnswer(wordId, answer) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify({ wordId, answer }),
+  });
+  return handleResponse(response);
+}
+
+export async function submitQuizResult(deckId, correct, total) {
+  const response = await fetch(`${BASE_URL}/quiz/results`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ deckId, correct, total }),
+  });
+  return handleResponse(response);
+}
+
+export async function fetchWeeklyRanking() {
+  const response = await fetch(`${BASE_URL}/rankings/weekly`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
+export async function fetchOtherUsers() {
+  const response = await fetch(`${BASE_URL}/users`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
+export async function fetchAchievements() {
+  const response = await fetch(`${BASE_URL}/achievements`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
+export async function fetchChallenges() {
+  const response = await fetch(`${BASE_URL}/challenges`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
+export async function sendChallenge(deckId, toUserId) {
+  const response = await fetch(`${BASE_URL}/challenges`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ deckId, toUserId }),
   });
   return handleResponse(response);
 }
