@@ -1,5 +1,6 @@
 import {
   createDeck,
+  countDecksCreatedToday,
   listDecks,
   listSharedDecks,
   deleteDeck,
@@ -43,12 +44,10 @@ export async function registerDeckRoutes(app) {
       return { error: '단어를 찾지 못했습니다' };
     }
 
-    const firstName = files[0].filename ? files[0].filename.replace(/\.[^.]+$/, '') : null;
-    const name = firstName
-      ? files.length > 1
-        ? `${firstName} 외 ${files.length - 1}장`
-        : firstName
-      : `${new Date().toISOString().slice(0, 10)} 단어장`;
+    const now = new Date();
+    const dateLabel = now.toISOString().slice(0, 10);
+    const todayCount = await countDecksCreatedToday(request.userId, now);
+    const name = `${dateLabel} 단어장 ${todayCount + 1} (${extractedWords.length}개)`;
 
     const deck = await createDeck(name, request.userId);
     const words = await insertWords(deck.id, extractedWords, request.userId);

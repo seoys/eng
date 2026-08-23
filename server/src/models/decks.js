@@ -22,6 +22,16 @@ export async function createDeck(name, userId) {
   return { id: insertedId.toString(), name: doc.name, createdAt: doc.createdAt };
 }
 
+export async function countDecksCreatedToday(userId, now = new Date()) {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return collection().countDocuments({
+    userId: new ObjectId(userId),
+    createdAt: { $gte: start, $lt: end },
+  });
+}
+
 export async function listDecks(userId) {
   const docs = await collection()
     .find({ userId: new ObjectId(userId) })

@@ -43,7 +43,7 @@ test('POST /api/decks creates a deck from an uploaded image', async () => {
 
   assert.equal(response.statusCode, 200);
   const body = JSON.parse(response.body);
-  assert.equal(body.name, 'test');
+  assert.match(body.name, /^\d{4}-\d{2}-\d{2} 단어장 1 \(1개\)$/);
   assert.equal(body.words.length, 1);
   assert.equal(body.words[0].word, 'apple');
 
@@ -420,7 +420,7 @@ test('POST /api/decks merges words from multiple images into a single deck', asy
 
   assert.equal(response.statusCode, 200);
   const body = JSON.parse(response.body);
-  assert.equal(body.name, 'p1 외 1장');
+  assert.match(body.name, /^\d{4}-\d{2}-\d{2} 단어장 1 \(2개\)$/);
   assert.deepEqual(
     body.words.map((w) => w.word).sort(),
     ['apple', 'banana'],
@@ -479,6 +479,34 @@ test('POST /api/decks returns 500 when every image in a multi-image upload fails
   });
 
   assert.equal(response.statusCode, 500);
+
+  await app.close();
+});
+
+test('POST /api/decks names decks by that day\'s sequence number, per user', async () => {
+  const app = buildApp({ visionExtractor: async () => [{ word: 'apple', meaning: '사과' }] });
+  const { authHeaders: userAHeaders } = await registerTestUser(app);
+  const { authHeaders: userBHeaders } = await registerTestUser(app);
+
+  async function upload(headers) {
+    const form = new FormData();
+    form.append('file', Buffer.from('img'), { filename: 'x.png', contentType: 'image/png' });
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/decks',
+      payload: form,
+      headers: { ...form.getHeaders(), ...headers },
+    });
+    return JSON.parse(response.body).name;
+  }
+
+  const first = await upload(userAHeaders);
+  const second = await upload(userAHeaders);
+  const otherUserFirst = await upload(userBHeaders);
+
+  assert.match(first, /^\d{4}-\d{2}-\d{2} 단어장 1 \(1개\)$/);
+  assert.match(second, /^\d{4}-\d{2}-\d{2} 단어장 2 \(1개\)$/);
+  assert.match(otherUserFirst, /^\d{4}-\d{2}-\d{2} 단어장 1 \(1개\)$/);
 
   await app.close();
 });
