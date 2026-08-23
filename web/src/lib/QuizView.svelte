@@ -387,6 +387,7 @@
 
   input {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     border-bottom: 2px solid var(--ink-soft);
@@ -411,6 +412,7 @@
 
   .answered-line {
     flex: 1;
+    min-width: 0;
     border-bottom: 2px solid var(--ink-soft);
     padding: 6px 4px;
     font-size: 20px;
@@ -421,6 +423,8 @@
 
   .submit,
   .next {
+    flex-shrink: 0;
+    white-space: nowrap;
     font-family: var(--font-hand);
     font-size: 16px;
     padding: 8px 18px;

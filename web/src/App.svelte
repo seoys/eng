@@ -193,15 +193,17 @@
     padding-top: 10px;
     border-top: 1px dashed var(--card-border);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 8px 12px;
   }
 
   .owner {
     font-family: var(--font-script);
     font-size: 16px;
     color: var(--ink);
+    white-space: nowrap;
   }
 
   .badges-link {
@@ -211,6 +213,7 @@
     font-size: 13px;
     color: var(--gold);
     padding: 0;
+    white-space: nowrap;
   }
 
   .badges-link:hover {
@@ -225,6 +228,7 @@
     color: var(--ink-soft);
     text-decoration: underline;
     padding: 0;
+    white-space: nowrap;
   }
 
   .logout:hover {
