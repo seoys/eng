@@ -6,11 +6,13 @@
   import RankingBoard from './lib/RankingBoard.svelte';
   import ChallengeInbox from './lib/ChallengeInbox.svelte';
   import AchievementsPage from './lib/AchievementsPage.svelte';
+  import MistakeNotebook from './lib/MistakeNotebook.svelte';
   import { getAuth, clearAuth } from './lib/api.js';
 
   let auth = getAuth();
   let view = 'list';
   let activeDeckId = null;
+  let activeSource = undefined;
   let deckListRef;
   let rankingRef;
   let challengeInboxRef;
@@ -35,11 +37,19 @@
 
   function handleSelectDeck(deck) {
     activeDeckId = deck.id;
+    activeSource = undefined;
     view = 'quiz';
   }
 
   function handleStartChallenge(deckId) {
     activeDeckId = deckId;
+    activeSource = undefined;
+    view = 'quiz';
+  }
+
+  function handleRetryMistakes() {
+    activeDeckId = null;
+    activeSource = 'mistakes';
     view = 'quiz';
   }
 
@@ -86,6 +96,9 @@
           <button class="badges-link" type="button" on:click={() => (view = 'achievements')}>
             🎖️ 달성 기록
           </button>
+          <button class="badges-link" type="button" on:click={() => (view = 'mistakes')}>
+            📕 오답노트
+          </button>
           <button class="logout" type="button" on:click={handleLogout}>로그아웃</button>
         </div>
       </div>
@@ -109,9 +122,16 @@
 
         <DeckListView bind:this={deckListRef} onSelectDeck={handleSelectDeck} />
       {:else if view === 'quiz'}
-        <QuizView deckId={activeDeckId} onFinish={handleFinish} onBack={handleBack} />
+        <QuizView
+          deckId={activeDeckId}
+          source={activeSource}
+          onFinish={handleFinish}
+          onBack={handleBack}
+        />
       {:else if view === 'achievements'}
         <AchievementsPage onBack={handleBack} />
+      {:else if view === 'mistakes'}
+        <MistakeNotebook onBack={handleBack} onRetry={handleRetryMistakes} />
       {/if}
     </main>
   </div>

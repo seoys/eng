@@ -1,9 +1,10 @@
 <script>
   import { onDestroy } from 'svelte';
-  import { fetchQuiz, checkAnswer, submitQuizResult } from './api.js';
+  import { fetchQuiz, fetchMistakeQuiz, checkAnswer, submitQuizResult } from './api.js';
   import { getTextAnimationClass } from './wordAnimations.js';
 
   export let deckId;
+  export let source = undefined;
   export let onFinish = () => {};
   export let onBack = () => {};
 
@@ -24,7 +25,7 @@
     loading = true;
     errorMessage = '';
     try {
-      questions = await fetchQuiz(deckId, 10);
+      questions = source === 'mistakes' ? await fetchMistakeQuiz() : await fetchQuiz(deckId);
       currentIndex = 0;
       correctCount = 0;
       feedback = null;
@@ -59,7 +60,9 @@
     if (currentIndex + 1 < questions.length) {
       currentIndex += 1;
     } else {
-      submitQuizResult(deckId, correctCount, questions.length).catch(() => {});
+      if (source !== 'mistakes') {
+        submitQuizResult(deckId, correctCount, questions.length).catch(() => {});
+      }
       onFinish({ total: questions.length, correct: correctCount });
     }
   }
@@ -114,7 +117,9 @@
     {/if}
   </div>
 {:else if !errorMessage}
-  <p class="loading">이 단어장에는 문제를 낼 단어가 없습니다.</p>
+  <p class="loading">
+    {source === 'mistakes' ? '아직 틀린 단어가 없어요!' : '이 단어장에는 문제를 낼 단어가 없습니다.'}
+  </p>
 {/if}
 
 <style>

@@ -2,11 +2,18 @@ import { getRandomWords, getWordByIdUnscoped } from '../models/words.js';
 import { getAccessibleDeck } from '../models/decks.js';
 import { gradeAnswer } from '../services/grading.js';
 import { recordQuizResult } from '../models/quizResults.js';
+import { recordMistake, clearMistake, getRandomMistakeWords } from '../models/mistakes.js';
 
 export async function registerQuizRoutes(app) {
   app.get('/', { preHandler: app.authenticate }, async (request, reply) => {
-    const { deckId, count } = request.query;
-    const parsedCount = Math.max(1, Number.parseInt(count, 10) || 10);
+    const { deckId, count, source } = request.query;
+    const requestedCount = Number.parseInt(count, 10);
+    // No count (or an invalid one) means "quiz on every word in the deck".
+    const parsedCount = requestedCount > 0 ? requestedCount : Number.MAX_SAFE_INTEGER;
+
+    if (source === 'mistakes') {
+      return getRandomMistakeWords(request.userId, parsedCount);
+    }
 
     if (deckId) {
       const deck = await getAccessibleDeck(deckId, request.userId);
@@ -37,6 +44,11 @@ export async function registerQuizRoutes(app) {
     }
 
     const result = gradeAnswer(word.word, answer ?? '');
+    if (result === 'wrong') {
+      await recordMistake(request.userId, word.id, word.deckId, word.word, word.meaning);
+    } else {
+      await clearMistake(request.userId, word.id);
+    }
     return { result, correctSpelling: word.word };
   });
 

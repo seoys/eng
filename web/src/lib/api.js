@@ -79,9 +79,10 @@ export async function shareDeck(deckId) {
   return handleResponse(response);
 }
 
-export async function fetchQuiz(deckId, count = 10) {
-  const params = new URLSearchParams({ count: String(count) });
+export async function fetchQuiz(deckId, count) {
+  const params = new URLSearchParams();
   if (deckId) params.set('deckId', deckId);
+  if (count) params.set('count', String(count));
   const response = await fetch(`${BASE_URL}/quiz?${params}`, { headers: authHeader() });
   return handleResponse(response);
 }
@@ -111,6 +112,18 @@ export async function fetchWeeklyRanking() {
 
 export async function fetchOtherUsers() {
   const response = await fetch(`${BASE_URL}/users`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
+export async function fetchMistakes() {
+  const response = await fetch(`${BASE_URL}/mistakes`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
+export async function fetchMistakeQuiz(count) {
+  const params = new URLSearchParams({ source: 'mistakes' });
+  if (count) params.set('count', String(count));
+  const response = await fetch(`${BASE_URL}/quiz?${params}`, { headers: authHeader() });
   return handleResponse(response);
 }
 

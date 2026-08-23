@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from '../db/mongo.js';
+import { deleteMistakesForDeck } from './mistakes.js';
 
 function collection() {
   return getDb().collection('decks');
@@ -104,6 +105,7 @@ export async function deleteDeck(id, userId) {
   if (!deck) return false;
 
   await getDb().collection('words').deleteMany({ deckId });
+  await deleteMistakesForDeck(id);
   const { deletedCount } = await collection().deleteOne(filter);
   return deletedCount > 0;
 }
