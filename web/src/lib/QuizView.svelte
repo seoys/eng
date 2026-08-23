@@ -41,6 +41,10 @@
   $: currentQuestion = questions[currentIndex];
   $: animationClass = currentQuestion ? getTextAnimationClass(currentQuestion.animation) : null;
 
+  function autofocus(node) {
+    node.focus();
+  }
+
   async function submitAnswer() {
     try {
       const result = await checkAnswer(currentQuestion.wordId, currentAnswer);
@@ -94,6 +98,7 @@
           placeholder="여기에 스펠링을 써 보세요"
           autocomplete="off"
           spellcheck="false"
+          use:autofocus
           on:keydown={(e) => e.key === 'Enter' && currentAnswer.trim() && submitAnswer()}
         />
         <button class="submit" on:click={submitAnswer} disabled={!currentAnswer.trim()}>
