@@ -1,8 +1,15 @@
-import { createDeck, listDecks, deleteDeck } from '../models/decks.js';
+import {
+  createDeck,
+  listDecks,
+  listSharedDecks,
+  deleteDeck,
+  getAccessibleDeck,
+  shareDeck,
+} from '../models/decks.js';
 import { insertWords, getWordsByDeck } from '../models/words.js';
 
 export async function registerDeckRoutes(app) {
-  app.post('/', async (request, reply) => {
+  app.post('/', { preHandler: app.authenticate }, async (request, reply) => {
     const file = await request.file();
     if (!file) {
       reply.code(400);
@@ -31,18 +38,40 @@ export async function registerDeckRoutes(app) {
       ? file.filename.replace(/\.[^.]+$/, '')
       : `${new Date().toISOString().slice(0, 10)} 단어장`;
 
-    const deck = await createDeck(name);
-    const words = await insertWords(deck.id, extractedWords);
+    const deck = await createDeck(name, request.userId);
+    const words = await insertWords(deck.id, extractedWords, request.userId);
 
     return { id: deck.id, name: deck.name, words };
   });
 
-  app.get('/', async () => listDecks());
+  app.get('/', { preHandler: app.authenticate }, async (request) => {
+    const [own, shared] = await Promise.all([
+      listDecks(request.userId),
+      listSharedDecks(request.userId),
+    ]);
+    return [...own, ...shared];
+  });
 
-  app.get('/:id/words', async (request) => getWordsByDeck(request.params.id));
+  app.post('/:id/share', { preHandler: app.authenticate }, async (request, reply) => {
+    const shared = await shareDeck(request.params.id, request.userId);
+    if (!shared) {
+      reply.code(404);
+      return { error: '단어장을 찾을 수 없습니다' };
+    }
+    return { shared: true };
+  });
 
-  app.delete('/:id', async (request, reply) => {
-    const deleted = await deleteDeck(request.params.id);
+  app.get('/:id/words', { preHandler: app.authenticate }, async (request, reply) => {
+    const deck = await getAccessibleDeck(request.params.id, request.userId);
+    if (!deck) {
+      reply.code(404);
+      return { error: '단어장을 찾을 수 없습니다' };
+    }
+    return getWordsByDeck(request.params.id, deck.ownerId);
+  });
+
+  app.delete('/:id', { preHandler: app.authenticate }, async (request, reply) => {
+    const deleted = await deleteDeck(request.params.id, request.userId);
     if (!deleted) {
       reply.code(404);
       return { error: '단어장을 찾을 수 없습니다' };

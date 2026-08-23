@@ -3,14 +3,32 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import { registerDeckRoutes } from './routes/decks.js';
 import { registerQuizRoutes } from './routes/quiz.js';
+import { registerAuthRoutes } from './routes/auth.js';
+import { verifyToken } from './services/auth.js';
 
-export function buildApp({ visionExtractor } = {}) {
+const DEV_JWT_SECRET = 'insecure-dev-secret-change-me';
+
+export function buildApp({ visionExtractor, jwtSecret = DEV_JWT_SECRET } = {}) {
   const app = Fastify({ logger: true });
 
   app.register(cors, { origin: true });
   app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
 
   app.decorate('visionExtractor', visionExtractor);
+
+  app.decorate('authenticate', async (request, reply) => {
+    const header = request.headers.authorization;
+    const token = header?.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) {
+      reply.code(401).send({ error: '로그인이 필요합니다' });
+      return;
+    }
+    try {
+      request.userId = verifyToken(token, jwtSecret);
+    } catch {
+      reply.code(401).send({ error: '로그인이 만료되었습니다. 다시 로그인해주세요' });
+    }
+  });
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
@@ -28,6 +46,7 @@ export function buildApp({ visionExtractor } = {}) {
 
   app.get('/health', async () => ({ status: 'ok' }));
 
+  app.register(registerAuthRoutes, { prefix: '/api/auth', jwtSecret });
   app.register(registerDeckRoutes, { prefix: '/api/decks' });
   app.register(registerQuizRoutes, { prefix: '/api/quiz' });
 

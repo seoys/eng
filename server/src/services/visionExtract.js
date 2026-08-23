@@ -1,3 +1,5 @@
+import { ANIMATION_CATEGORIES } from './animationCategories.js';
+
 const EXTRACT_TOOL = {
   type: 'function',
   function: {
@@ -13,8 +15,14 @@ const EXTRACT_TOOL = {
             properties: {
               word: { type: 'string' },
               meaning: { type: 'string' },
+              animation: {
+                type: 'string',
+                enum: ANIMATION_CATEGORIES,
+                description:
+                  'The category whose signature motion best matches this word (e.g. "penguin" waddles, "train" chugs, "fish" swims). Pick the closest fit even if not an exact match. Use "none" if nothing fits.',
+              },
             },
-            required: ['word', 'meaning'],
+            required: ['word', 'meaning', 'animation'],
           },
         },
       },
@@ -40,13 +48,19 @@ function parseToolResponse(response) {
     throw new Error('No valid words array found in tool call arguments');
   }
 
-  return parsedArgs.words.filter(
-    (item) =>
-      typeof item.word === 'string' &&
-      item.word.trim() &&
-      typeof item.meaning === 'string' &&
-      item.meaning.trim(),
-  );
+  return parsedArgs.words
+    .filter(
+      (item) =>
+        typeof item.word === 'string' &&
+        item.word.trim() &&
+        typeof item.meaning === 'string' &&
+        item.meaning.trim(),
+    )
+    .map((item) => ({
+      word: item.word,
+      meaning: item.meaning,
+      animation: ANIMATION_CATEGORIES.includes(item.animation) ? item.animation : 'none',
+    }));
 }
 
 export function createVisionExtractor({ client, model }) {
@@ -61,7 +75,7 @@ export function createVisionExtractor({ client, model }) {
           content: [
             {
               type: 'text',
-              text: '이미지 속 영어 단어와 그에 대응하는 한글 뜻을 모두 찾아서 extract_words 함수를 호출해줘.',
+              text: '이미지 속 영어 단어와 그에 대응하는 한글 뜻을 모두 찾아서 extract_words 함수를 호출해줘. 각 단어마다 어울리는 animation 카테고리도 함께 골라줘 (기차, 비행기, 동물처럼 움직이는 대상을 표현하는 단어라면 해당 카테고리를, 아니라면 "none"을 선택).',
             },
             {
               type: 'image_url',

@@ -1,6 +1,32 @@
 const BASE_URL = '/api';
+const AUTH_KEY = 'eng-quiz-auth';
+
+export function getAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setAuth(auth) {
+  localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+}
+
+export function clearAuth() {
+  localStorage.removeItem(AUTH_KEY);
+}
+
+function authHeader() {
+  const auth = getAuth();
+  return auth?.token ? { Authorization: `Bearer ${auth.token}` } : {};
+}
 
 async function handleResponse(response) {
+  if (response.status === 401) {
+    clearAuth();
+  }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error || `요청 실패 (${response.status})`);
@@ -9,34 +35,60 @@ async function handleResponse(response) {
   return response.json();
 }
 
+export async function login({ name, birthDate, password }) {
+  const response = await fetch(`${BASE_URL}/auth`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, birthDate, password }),
+  });
+  const body = await handleResponse(response);
+  setAuth(body);
+  return body;
+}
+
 export async function uploadDeck(file) {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await fetch(`${BASE_URL}/decks`, { method: 'POST', body: formData });
+  const response = await fetch(`${BASE_URL}/decks`, {
+    method: 'POST',
+    headers: authHeader(),
+    body: formData,
+  });
   return handleResponse(response);
 }
 
 export async function fetchDecks() {
-  const response = await fetch(`${BASE_URL}/decks`);
+  const response = await fetch(`${BASE_URL}/decks`, { headers: authHeader() });
   return handleResponse(response);
 }
 
 export async function deleteDeck(deckId) {
-  const response = await fetch(`${BASE_URL}/decks/${deckId}`, { method: 'DELETE' });
+  const response = await fetch(`${BASE_URL}/decks/${deckId}`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  });
+  return handleResponse(response);
+}
+
+export async function shareDeck(deckId) {
+  const response = await fetch(`${BASE_URL}/decks/${deckId}/share`, {
+    method: 'POST',
+    headers: authHeader(),
+  });
   return handleResponse(response);
 }
 
 export async function fetchQuiz(deckId, count = 10) {
   const params = new URLSearchParams({ count: String(count) });
   if (deckId) params.set('deckId', deckId);
-  const response = await fetch(`${BASE_URL}/quiz?${params}`);
+  const response = await fetch(`${BASE_URL}/quiz?${params}`, { headers: authHeader() });
   return handleResponse(response);
 }
 
 export async function checkAnswer(wordId, answer) {
   const response = await fetch(`${BASE_URL}/quiz/check`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify({ wordId, answer }),
   });
   return handleResponse(response);

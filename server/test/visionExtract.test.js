@@ -22,14 +22,51 @@ test('extractWordsFromImage returns parsed words on success', async () => {
   const client = {
     chat: {
       completions: {
-        create: async () => fakeResponse([{ word: 'apple', meaning: '사과' }]),
+        create: async () =>
+          fakeResponse([{ word: 'apple', meaning: '사과', animation: 'none' }]),
       },
     },
   };
   const extract = createVisionExtractor({ client, model: 'fake-model' });
 
   const words = await extract('base64data', 'image/png');
-  assert.deepEqual(words, [{ word: 'apple', meaning: '사과' }]);
+  assert.deepEqual(words, [{ word: 'apple', meaning: '사과', animation: 'none' }]);
+});
+
+test('extractWordsFromImage keeps a valid animation category', async () => {
+  const client = {
+    chat: {
+      completions: {
+        create: async () =>
+          fakeResponse([{ word: 'train', meaning: '기차', animation: 'train' }]),
+      },
+    },
+  };
+  const extract = createVisionExtractor({ client, model: 'fake-model' });
+
+  const words = await extract('base64data', 'image/png');
+  assert.deepEqual(words, [{ word: 'train', meaning: '기차', animation: 'train' }]);
+});
+
+test('extractWordsFromImage falls back to "none" for an invalid or missing animation', async () => {
+  const client = {
+    chat: {
+      completions: {
+        create: async () =>
+          fakeResponse([
+            { word: 'apple', meaning: '사과', animation: 'not-a-real-category' },
+            { word: 'dog', meaning: '개' },
+          ]),
+      },
+    },
+  };
+  const extract = createVisionExtractor({ client, model: 'fake-model' });
+
+  const words = await extract('base64data', 'image/png');
+  assert.deepEqual(words, [
+    { word: 'apple', meaning: '사과', animation: 'none' },
+    { word: 'dog', meaning: '개', animation: 'none' },
+  ]);
 });
 
 test('extractWordsFromImage filters out malformed entries', async () => {
@@ -38,7 +75,7 @@ test('extractWordsFromImage filters out malformed entries', async () => {
       completions: {
         create: async () =>
           fakeResponse([
-            { word: 'apple', meaning: '사과' },
+            { word: 'apple', meaning: '사과', animation: 'none' },
             { word: '', meaning: '빈값' },
             { word: 'cat' },
           ]),
@@ -48,7 +85,7 @@ test('extractWordsFromImage filters out malformed entries', async () => {
   const extract = createVisionExtractor({ client, model: 'fake-model' });
 
   const words = await extract('base64data', 'image/png');
-  assert.deepEqual(words, [{ word: 'apple', meaning: '사과' }]);
+  assert.deepEqual(words, [{ word: 'apple', meaning: '사과', animation: 'none' }]);
 });
 
 test('extractWordsFromImage retries once on failure then throws if still failing', async () => {
@@ -80,7 +117,7 @@ test('extractWordsFromImage succeeds on retry after first failure', async () => 
         create: async () => {
           callCount += 1;
           if (callCount === 1) throw new Error('transient error');
-          return fakeResponse([{ word: 'dog', meaning: '개' }]);
+          return fakeResponse([{ word: 'dog', meaning: '개', animation: 'dog' }]);
         },
       },
     },
@@ -88,6 +125,6 @@ test('extractWordsFromImage succeeds on retry after first failure', async () => 
   const extract = createVisionExtractor({ client, model: 'fake-model' });
 
   const words = await extract('base64data', 'image/png');
-  assert.deepEqual(words, [{ word: 'dog', meaning: '개' }]);
+  assert.deepEqual(words, [{ word: 'dog', meaning: '개', animation: 'dog' }]);
   assert.equal(callCount, 2);
 });
