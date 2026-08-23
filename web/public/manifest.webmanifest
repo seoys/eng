@@ -1,0 +1,15 @@
+{
+  "name": "영어단어 수첩",
+  "short_name": "영어단어 수첩",
+  "description": "사진 속 단어를 모으고, 스펠링으로 복습해요",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#182420",
+  "theme_color": "#182420",
+  "lang": "ko",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
