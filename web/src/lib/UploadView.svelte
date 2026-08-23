@@ -4,6 +4,8 @@
 
   export let onUploaded = () => {};
 
+  const LOADING_ANIMALS = ['🐰', '🐿️', '🦔', '🐥'];
+
   let uploading = false;
   let errorMessage = '';
   let previewWords = [];
@@ -73,8 +75,14 @@
       disabled={uploading}
     />
     {#if uploading}
-      <span class="pencil" aria-hidden="true">✎</span>
-      <span>단어를 옮겨 적는 중...</span>
+      <span class="loader" aria-hidden="true">
+        {#each LOADING_ANIMALS as animal, i (animal)}
+          <span class="orbit" style="--i: {i}">
+            <span class="animal" style="--i: {i}">{animal}</span>
+          </span>
+        {/each}
+      </span>
+      <span>단어를 찾고 있어요...</span>
     {:else}
       <span class="plus" aria-hidden="true">＋</span>
       <span>사진 선택 또는 여기에 끌어놓기</span>
@@ -168,19 +176,40 @@
     line-height: 1;
   }
 
-  .pencil {
-    font-size: 22px;
-    display: inline-block;
-    animation: write 0.9s ease-in-out infinite;
+  .loader {
+    position: relative;
+    width: 56px;
+    height: 56px;
   }
 
-  @keyframes write {
-    0%,
-    100% {
-      transform: rotate(-6deg) translateX(0);
+  .orbit {
+    position: absolute;
+    inset: 0;
+    animation: orbit-spin 2.4s linear infinite;
+    animation-delay: calc(var(--i) * -0.6s);
+  }
+
+  .orbit .animal {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    translate: -50% 0;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-block;
+    animation: orbit-counter-spin 2.4s linear infinite;
+    animation-delay: calc(var(--i) * -0.6s);
+  }
+
+  @keyframes orbit-spin {
+    to {
+      transform: rotate(360deg);
     }
-    50% {
-      transform: rotate(6deg) translateX(3px);
+  }
+
+  @keyframes orbit-counter-spin {
+    to {
+      transform: rotate(-360deg);
     }
   }
 
