@@ -1,15 +1,21 @@
-import { createChallenge, listReceivedChallenges, listSentChallenges } from '../models/challenges.js';
+import {
+  createChallenge,
+  listReceivedChallenges,
+  listSentChallenges,
+  listBattles,
+} from '../models/challenges.js';
 import { getBestResult } from '../models/quizResults.js';
 import { getAccessibleDeck, shareDeck } from '../models/decks.js';
 import { findUserById } from '../models/users.js';
 
 export async function registerChallengeRoutes(app) {
   app.get('/', { preHandler: app.authenticate }, async (request) => {
-    const [received, sent] = await Promise.all([
+    const [received, sent, battles] = await Promise.all([
       listReceivedChallenges(request.userId),
       listSentChallenges(request.userId),
+      listBattles(request.userId),
     ]);
-    return { received, sent };
+    return { received, sent, battles };
   });
 
   app.post('/', { preHandler: app.authenticate }, async (request, reply) => {

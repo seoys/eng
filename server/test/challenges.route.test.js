@@ -118,6 +118,107 @@ test('cannot challenge yourself', async () => {
   await app.close();
 });
 
+test('a received challenge disappears once you beat the target score', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const alice = await registerTestUser(app, { name: '앨리스' });
+  const bob = await registerTestUser(app, { name: '밥' });
+  const deck = await createDeck('도전덱4', alice.userId);
+  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 8, total: 10 },
+    headers: alice.authHeaders,
+  });
+  await app.inject({
+    method: 'POST',
+    url: '/api/challenges',
+    payload: { deckId: deck.id, toUserId: bob.userId },
+    headers: alice.authHeaders,
+  });
+
+  const beforeBeat = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/challenges', headers: bob.authHeaders })).body,
+  );
+  assert.equal(beforeBeat.received.length, 1);
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 5, total: 10 },
+    headers: bob.authHeaders,
+  });
+  const stillLosing = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/challenges', headers: bob.authHeaders })).body,
+  );
+  assert.equal(stillLosing.received.length, 1, 'a lower score should not clear the challenge');
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 9, total: 10 },
+    headers: bob.authHeaders,
+  });
+  const afterBeat = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/challenges', headers: bob.authHeaders })).body,
+  );
+  assert.equal(afterBeat.received.length, 0, 'beating the target score should clear the challenge');
+
+  await app.close();
+});
+
+test('GET /api/challenges reports battle results for both sides once the recipient has played', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const alice = await registerTestUser(app, { name: '앨리스' });
+  const bob = await registerTestUser(app, { name: '밥' });
+  const deck = await createDeck('도전덱5', alice.userId);
+  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 3, total: 10 },
+    headers: alice.authHeaders,
+  });
+  await app.inject({
+    method: 'POST',
+    url: '/api/challenges',
+    payload: { deckId: deck.id, toUserId: bob.userId },
+    headers: alice.authHeaders,
+  });
+
+  const beforePlay = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/challenges', headers: alice.authHeaders })).body,
+  );
+  assert.equal(beforePlay.battles.length, 0, 'no battle result until the recipient plays');
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 7, total: 10 },
+    headers: bob.authHeaders,
+  });
+
+  const aliceView = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/challenges', headers: alice.authHeaders })).body,
+  );
+  const bobView = JSON.parse(
+    (await app.inject({ method: 'GET', url: '/api/challenges', headers: bob.authHeaders })).body,
+  );
+
+  for (const battles of [aliceView.battles, bobView.battles]) {
+    assert.equal(battles.length, 1);
+    assert.equal(battles[0].fromName, '앨리스');
+    assert.equal(battles[0].targetScore, 30);
+    assert.equal(battles[0].toName, '밥');
+    assert.equal(battles[0].resultScore, 70);
+    assert.equal(battles[0].winner, 'to');
+  }
+
+  await app.close();
+});
+
 test('cannot challenge someone using a deck you have no access to', async () => {
   const app = buildApp({ visionExtractor: async () => [] });
   const alice = await registerTestUser(app, { name: '앨리스' });

@@ -5,6 +5,7 @@
   import AuthGate from './lib/AuthGate.svelte';
   import RankingBoard from './lib/RankingBoard.svelte';
   import ChallengeInbox from './lib/ChallengeInbox.svelte';
+  import BattleHistory from './lib/BattleHistory.svelte';
   import AchievementsPage from './lib/AchievementsPage.svelte';
   import MistakeNotebook from './lib/MistakeNotebook.svelte';
   import { getAuth, clearAuth } from './lib/api.js';
@@ -16,6 +17,7 @@
   let deckListRef;
   let rankingRef;
   let challengeInboxRef;
+  let battleHistoryRef;
   let lastScore = null;
 
   function handleAuthenticated(newAuth) {
@@ -58,6 +60,7 @@
     view = 'list';
     rankingRef?.refresh();
     challengeInboxRef?.refresh();
+    battleHistoryRef?.refresh();
   }
 
   function handleBack() {
@@ -117,6 +120,8 @@
         {/if}
 
         <ChallengeInbox bind:this={challengeInboxRef} onStartChallenge={handleStartChallenge} />
+
+        <BattleHistory bind:this={battleHistoryRef} />
 
         <RankingBoard bind:this={rankingRef} myUserId={auth.user.id} />
 

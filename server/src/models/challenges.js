@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from '../db/mongo.js';
+import { getBestResult } from './quizResults.js';
 
 function collection() {
   return getDb().collection('challenges');
@@ -47,7 +48,16 @@ export async function listReceivedChallenges(userId) {
     .find({ toUserId: new ObjectId(userId) })
     .sort({ createdAt: -1 })
     .toArray();
-  return hydrate(docs);
+  const challenges = await hydrate(docs);
+
+  const pending = [];
+  for (const challenge of challenges) {
+    const myBest = await getBestResult(userId, challenge.deckId);
+    if (!myBest || myBest.score <= challenge.targetScore) {
+      pending.push(challenge);
+    }
+  }
+  return pending;
 }
 
 export async function listSentChallenges(userId) {
@@ -56,6 +66,39 @@ export async function listSentChallenges(userId) {
     .sort({ createdAt: -1 })
     .toArray();
   return hydrate(docs);
+}
+
+export async function listBattles(userId) {
+  const docs = await collection()
+    .find({ $or: [{ fromUserId: new ObjectId(userId) }, { toUserId: new ObjectId(userId) }] })
+    .sort({ createdAt: -1 })
+    .toArray();
+  const challenges = await hydrate(docs);
+
+  const battles = [];
+  for (const challenge of challenges) {
+    const result = await getBestResult(challenge.toUserId, challenge.deckId);
+    if (!result) continue;
+
+    let winner;
+    if (result.score > challenge.targetScore) winner = 'to';
+    else if (result.score < challenge.targetScore) winner = 'from';
+    else winner = 'tie';
+
+    battles.push({
+      id: challenge.id,
+      deckId: challenge.deckId,
+      deckName: challenge.deckName,
+      fromUserId: challenge.fromUserId,
+      fromName: challenge.fromName,
+      targetScore: challenge.targetScore,
+      toUserId: challenge.toUserId,
+      toName: challenge.toName,
+      resultScore: result.score,
+      winner,
+    });
+  }
+  return battles;
 }
 
 async function hydrateOne(doc) {
