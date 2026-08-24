@@ -121,11 +121,11 @@
 
         <ChallengeInbox bind:this={challengeInboxRef} onStartChallenge={handleStartChallenge} />
 
+        <DeckListView bind:this={deckListRef} onSelectDeck={handleSelectDeck} />
+
         <BattleHistory bind:this={battleHistoryRef} myUserId={auth.user.id} />
 
         <RankingBoard bind:this={rankingRef} myUserId={auth.user.id} />
-
-        <DeckListView bind:this={deckListRef} onSelectDeck={handleSelectDeck} />
       {:else if view === 'quiz'}
         <QuizView
           deckId={activeDeckId}
