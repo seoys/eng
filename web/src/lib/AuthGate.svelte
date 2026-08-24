@@ -37,7 +37,7 @@
 
       <label>
         <span>생년월일</span>
-        <input type="date" bind:value={birthDate} required />
+        <input type="date" bind:value={birthDate} autocomplete="off" required />
       </label>
 
       <label>
