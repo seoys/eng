@@ -122,6 +122,11 @@ export async function fetchMistakes() {
   return handleResponse(response);
 }
 
+export async function fetchMistakeExample(wordId) {
+  const response = await fetch(`${BASE_URL}/mistakes/${wordId}/example`, { headers: authHeader() });
+  return handleResponse(response);
+}
+
 export async function fetchMistakeQuiz(count) {
   const params = new URLSearchParams({ source: 'mistakes' });
   if (count) params.set('count', String(count));

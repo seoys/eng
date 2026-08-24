@@ -14,13 +14,19 @@ import { verifyToken } from './services/auth.js';
 
 const DEV_JWT_SECRET = 'insecure-dev-secret-change-me';
 
-export function buildApp({ visionExtractor, jwtSecret = DEV_JWT_SECRET, staticDir } = {}) {
+export function buildApp({
+  visionExtractor,
+  sentenceGenerator,
+  jwtSecret = DEV_JWT_SECRET,
+  staticDir,
+} = {}) {
   const app = Fastify({ logger: true });
 
   app.register(cors, { origin: true });
   app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
 
   app.decorate('visionExtractor', visionExtractor);
+  app.decorate('sentenceGenerator', sentenceGenerator);
 
   app.decorate('authenticate', async (request, reply) => {
     const header = request.headers.authorization;

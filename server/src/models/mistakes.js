@@ -37,6 +37,27 @@ export async function listMistakes(userId) {
   }));
 }
 
+export async function getMistake(userId, wordId) {
+  const doc = await collection().findOne({
+    userId: new ObjectId(userId),
+    wordId: new ObjectId(wordId),
+  });
+  if (!doc) return null;
+  return {
+    wordId: doc.wordId.toString(),
+    word: doc.word,
+    meaning: doc.meaning,
+    exampleSentence: doc.exampleSentence ?? null,
+  };
+}
+
+export async function saveExampleSentence(userId, wordId, exampleSentence) {
+  await collection().updateOne(
+    { userId: new ObjectId(userId), wordId: new ObjectId(wordId) },
+    { $set: { exampleSentence } },
+  );
+}
+
 export async function getRandomMistakeWords(userId, count) {
   const docs = await collection()
     .aggregate([{ $match: { userId: new ObjectId(userId) } }, { $sample: { size: count } }])

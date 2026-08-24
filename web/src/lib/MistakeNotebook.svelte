@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchMistakes } from './api.js';
+  import { fetchMistakes, fetchMistakeExample } from './api.js';
   import { canSpeak, speakWord } from './speech.js';
 
   export let onBack = () => {};
@@ -9,6 +9,9 @@
   let mistakes = [];
   let errorMessage = '';
   let loading = true;
+
+  let expandedWordId = null;
+  let exampleCache = {};
 
   async function load() {
     loading = true;
@@ -23,6 +26,26 @@
   }
 
   onMount(load);
+
+  async function toggleExpand(wordId) {
+    if (expandedWordId === wordId) {
+      expandedWordId = null;
+      return;
+    }
+    expandedWordId = wordId;
+    if (exampleCache[wordId]) return;
+
+    exampleCache = { ...exampleCache, [wordId]: { loading: true, error: '', sentence: '' } };
+    try {
+      const { sentence } = await fetchMistakeExample(wordId);
+      exampleCache = { ...exampleCache, [wordId]: { loading: false, error: '', sentence } };
+    } catch (error) {
+      exampleCache = {
+        ...exampleCache,
+        [wordId]: { loading: false, error: error.message, sentence: '' },
+      };
+    }
+  }
 </script>
 
 <button class="back" type="button" on:click={onBack}>← 목록으로</button>
@@ -46,19 +69,44 @@
   <ul class="list">
     {#each mistakes as mistake (mistake.wordId)}
       <li class="row">
+        <button class="row-main" type="button" on:click={() => toggleExpand(mistake.wordId)}>
+          <span class="word">{mistake.word}</span>
+          <span class="meaning">{mistake.meaning}</span>
+        </button>
         {#if canSpeak()}
           <button
             class="speak"
             type="button"
             aria-label="{mistake.word} 발음 듣기"
-            on:click={() => speakWord(mistake.word)}
+            on:click|stopPropagation={() => speakWord(mistake.word)}
           >
             🔊
           </button>
         {/if}
-        <span class="word">{mistake.word}</span>
-        <span class="meaning">{mistake.meaning}</span>
       </li>
+      {#if expandedWordId === mistake.wordId}
+        <li class="example-row">
+          {#if exampleCache[mistake.wordId]?.loading}
+            <p class="example-loading">예문 만드는 중...</p>
+          {:else if exampleCache[mistake.wordId]?.error}
+            <p class="example-error">✗ {exampleCache[mistake.wordId].error}</p>
+          {:else if exampleCache[mistake.wordId]?.sentence}
+            <div class="example">
+              {#if canSpeak()}
+                <button
+                  class="speak-sentence"
+                  type="button"
+                  aria-label="예문 발음 듣기"
+                  on:click={() => speakWord(exampleCache[mistake.wordId].sentence)}
+                >
+                  🔊
+                </button>
+              {/if}
+              <span class="sentence">{exampleCache[mistake.wordId].sentence}</span>
+            </div>
+          {/if}
+        </li>
+      {/if}
     {/each}
   </ul>
 {/if}
@@ -136,11 +184,24 @@
 
   .row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
     background: var(--card);
-    padding: 12px 16px;
+    padding: 4px 16px;
+  }
+
+  .row-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    background: none;
+    border: none;
+    padding: 8px 0;
+    text-align: left;
   }
 
   .speak {
@@ -169,5 +230,50 @@
     font-family: var(--font-hand);
     font-size: 16px;
     color: var(--ink-soft);
+  }
+
+  .example-row {
+    background: var(--paper);
+    padding: 12px 16px;
+  }
+
+  .example-loading {
+    font-family: var(--font-hand);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .example-error {
+    font-size: 13px;
+    color: var(--red);
+  }
+
+  .example {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .speak-sentence {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    opacity: 0.8;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .speak-sentence:hover {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  .sentence {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.5;
   }
 </style>

@@ -148,3 +148,90 @@ test('deleting a deck also clears its words from the mistake notebook', async ()
 
   await app.close();
 });
+
+test('GET /api/mistakes/:wordId/example generates and caches a sentence', async () => {
+  let callCount = 0;
+  const app = buildApp({
+    visionExtractor: async () => [],
+    sentenceGenerator: async (word) => {
+      callCount += 1;
+      return `This is a sentence about ${word}.`;
+    },
+  });
+  const { userId, authHeaders } = await registerTestUser(app);
+  const deck = await createDeck('예문덱', userId);
+  const [word] = await insertWords(deck.id, [{ word: 'orbit', meaning: '궤도' }], userId);
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/check',
+    payload: { wordId: word.id, answer: 'xxx' },
+    headers: authHeaders,
+  });
+
+  const first = await app.inject({
+    method: 'GET',
+    url: `/api/mistakes/${word.id}/example`,
+    headers: authHeaders,
+  });
+  assert.equal(first.statusCode, 200);
+  assert.equal(JSON.parse(first.body).sentence, 'This is a sentence about orbit.');
+  assert.equal(callCount, 1);
+
+  const second = await app.inject({
+    method: 'GET',
+    url: `/api/mistakes/${word.id}/example`,
+    headers: authHeaders,
+  });
+  assert.equal(second.statusCode, 200);
+  assert.equal(JSON.parse(second.body).sentence, 'This is a sentence about orbit.');
+  assert.equal(callCount, 1, 'a cached sentence should not call the generator again');
+
+  await app.close();
+});
+
+test('GET /api/mistakes/:wordId/example returns 404 for a word not in your notebook', async () => {
+  const app = buildApp({ visionExtractor: async () => [], sentenceGenerator: async () => 'x' });
+  const { userId, authHeaders } = await registerTestUser(app);
+  const deck = await createDeck('예문덱2', userId);
+  const [word] = await insertWords(deck.id, [{ word: 'calm', meaning: '차분한' }], userId);
+
+  const response = await app.inject({
+    method: 'GET',
+    url: `/api/mistakes/${word.id}/example`,
+    headers: authHeaders,
+  });
+
+  assert.equal(response.statusCode, 404);
+
+  await app.close();
+});
+
+test('GET /api/mistakes/:wordId/example returns 500 when the generator fails', async () => {
+  const app = buildApp({
+    visionExtractor: async () => [],
+    sentenceGenerator: async () => {
+      throw new Error('boom');
+    },
+  });
+  const { userId, authHeaders } = await registerTestUser(app);
+  const deck = await createDeck('예문덱3', userId);
+  const [word] = await insertWords(deck.id, [{ word: 'spark', meaning: '불꽃' }], userId);
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/quiz/check',
+    payload: { wordId: word.id, answer: 'xxx' },
+    headers: authHeaders,
+  });
+
+  const response = await app.inject({
+    method: 'GET',
+    url: `/api/mistakes/${word.id}/example`,
+    headers: authHeaders,
+  });
+
+  assert.equal(response.statusCode, 500);
+
+  await app.close();
+});
