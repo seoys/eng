@@ -133,7 +133,7 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 3px dashed var(--card-border);
+    border: 2px solid var(--card-border);
   }
 
   .badge.earned {
@@ -142,7 +142,7 @@
   }
 
   .badge.earned .ring {
-    border: 3px double var(--gold);
+    border: 2px solid var(--gold);
   }
 
   .emoji {

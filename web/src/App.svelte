@@ -159,32 +159,19 @@
 
   .tab {
     position: relative;
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: 4px 4px 14px 14px;
-    padding: 18px 32px 20px;
+    width: 100%;
+    background: var(--gradient-hero);
+    border-radius: 22px;
+    padding: 24px 32px 22px;
     text-align: center;
     box-shadow: var(--shadow-card);
-    transform: rotate(-1deg);
-  }
-
-  .tab::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    translate: -50% 0;
-    width: 64px;
-    height: 20px;
-    background: var(--gold-soft);
-    border: 1px solid var(--gold);
-    border-radius: 3px;
-    opacity: 0.9;
   }
 
   .tab h1 {
-    font-size: 34px;
-    letter-spacing: 0.5px;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
   }
 
   .cover-sub {
@@ -194,9 +181,9 @@
   }
 
   .owner-row {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--card-border);
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--card-border);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -254,23 +241,24 @@
     align-items: center;
     gap: 2px;
     width: 200px;
-    padding: 18px 14px 16px;
-    border: 3px double currentColor;
-    border-radius: 50% / 40%;
+    padding: 20px 14px 18px;
+    border-radius: 20px;
     text-align: center;
-    rotate: -5deg;
-    animation: stamp-down 0.32s cubic-bezier(0.2, 1.4, 0.5, 1);
+    animation: stamp-down 0.28s cubic-bezier(0.2, 1, 0.4, 1);
   }
 
   .score-stamp.perfect,
   .score-stamp.great {
     color: var(--green);
+    background: var(--green-soft);
   }
   .score-stamp.okay {
     color: var(--gold);
+    background: var(--gold-soft);
   }
   .score-stamp.retry {
     color: var(--red);
+    background: var(--red-soft);
   }
 
   .score-num {
@@ -302,17 +290,11 @@
   @keyframes stamp-down {
     0% {
       opacity: 0;
-      scale: 1.6;
-      rotate: -5deg;
-    }
-    60% {
-      opacity: 1;
-      scale: 0.94;
+      scale: 0.85;
     }
     100% {
       opacity: 1;
       scale: 1;
-      rotate: -5deg;
     }
   }
 </style>

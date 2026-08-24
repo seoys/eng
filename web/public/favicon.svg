@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect x="4" y="4" width="56" height="56" rx="8" fill="#182420" />
-  <rect x="10" y="14" width="44" height="38" rx="5" fill="#1f2f28" stroke="#3a4c40" stroke-width="2" />
-  <rect x="24" y="6" width="16" height="8" rx="2.5" fill="#3a2f0e" stroke="#e4c777" stroke-width="2" />
-  <line x1="17" y1="26" x2="47" y2="26" stroke="#9fae9f" stroke-width="2" stroke-linecap="round" opacity="0.55" />
-  <line x1="17" y1="34" x2="47" y2="34" stroke="#9fae9f" stroke-width="2" stroke-linecap="round" opacity="0.55" />
-  <line x1="17" y1="42" x2="38" y2="42" stroke="#e4c777" stroke-width="2.5" stroke-linecap="round" />
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8ea9ff" />
+      <stop offset="0.5" stop-color="#b48bf5" />
+      <stop offset="1" stop-color="#ff9fd1" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#g)" />
+  <rect x="17" y="16" width="30" height="32" rx="6" fill="#ffffff" fill-opacity="0.95" />
+  <line x1="23" y1="27" x2="41" y2="27" stroke="#7c6ff0" stroke-width="3" stroke-linecap="round" />
+  <line x1="23" y1="35" x2="35" y2="35" stroke="#c26fe0" stroke-width="3" stroke-linecap="round" />
 </svg>

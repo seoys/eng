@@ -125,13 +125,8 @@
   {/if}
 
   <ul>
-    {#each decks as deck, i (deck.id)}
-      <li
-        class="deck-card"
-        style="--tilt: {i % 2 === 0 ? '-0.6deg' : '0.6deg'}"
-        on:click={() => onSelectDeck(deck)}
-      >
-        <span class="fold" aria-hidden="true"></span>
+    {#each decks as deck (deck.id)}
+      <li class="deck-card" on:click={() => onSelectDeck(deck)}>
         <div class="deck-info">
           {#if deck.ownerName}
             <span class="owner-tag">{deck.ownerName}</span>
@@ -290,8 +285,9 @@
     color: var(--ink-soft);
     font-size: 14px;
     padding: 18px;
-    border: 1px dashed var(--card-border);
-    border-radius: 5px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
     text-align: center;
   }
 
@@ -311,29 +307,16 @@
     gap: 12px;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 4px;
+    border-radius: 16px;
     padding: 14px 18px;
     box-shadow: var(--shadow-card);
     cursor: pointer;
-    transform: rotate(var(--tilt));
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
   .deck-card:hover {
-    transform: rotate(0deg) translateY(-2px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-card-lift);
-  }
-
-  .fold {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 16px 16px 0;
-    border-color: transparent var(--paper) transparent transparent;
-    filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.15));
   }
 
   .deck-info {
@@ -431,7 +414,7 @@
     color: var(--ink-soft);
     font-size: 14px;
     padding: 4px 6px;
-    border-radius: 3px;
+    border-radius: 8px;
     line-height: 1;
   }
 
@@ -443,8 +426,8 @@
   .challenge-picker {
     list-style: none;
     background: var(--red-soft);
-    border: 1px dashed var(--red);
-    border-radius: 6px;
+    border: 1px solid var(--red);
+    border-radius: 16px;
     padding: 12px 16px;
     margin-top: -6px;
     cursor: default;
@@ -467,7 +450,7 @@
     font-family: var(--font-body);
     font-size: 13px;
     padding: 5px 8px;
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid var(--card-border);
     background: var(--card);
     color: var(--ink);
@@ -477,7 +460,7 @@
     font-family: var(--font-hand);
     font-size: 13px;
     padding: 5px 14px;
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1.5px solid var(--red);
     background: var(--card);
     color: var(--red);

@@ -43,18 +43,6 @@
 </script>
 
 <div class="upload-card">
-  <span class="clip" aria-hidden="true">
-    <svg viewBox="0 0 24 40" width="20" height="34">
-      <path
-        d="M6 10 V28 a6 6 0 0 0 12 0 V8 a4 4 0 0 0 -8 0 V26 a2 2 0 0 0 4 0 V12"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.4"
-        stroke-linecap="round"
-      />
-    </svg>
-  </span>
-
   <h2>새 단어 카드 만들기</h2>
   <p class="hint">영어 단어가 담긴 사진을 붙여넣으면, 단어와 뜻을 자동으로 옮겨 적어드려요. 여러 장을 한 번에 골라도 하나의 단어장으로 모아드려요.</p>
 
@@ -125,17 +113,9 @@
     position: relative;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 6px;
+    border-radius: 20px;
     padding: 24px 26px 22px;
     box-shadow: var(--shadow-card);
-  }
-
-  .clip {
-    position: absolute;
-    top: -14px;
-    left: 24px;
-    color: var(--ink-soft);
-    transform: rotate(-8deg);
   }
 
   h2 {
@@ -156,7 +136,7 @@
     gap: 8px;
     padding: 26px 16px;
     border: 2px dashed var(--card-border);
-    border-radius: 5px;
+    border-radius: 14px;
     text-align: center;
     font-size: 15px;
     color: var(--ink-soft);

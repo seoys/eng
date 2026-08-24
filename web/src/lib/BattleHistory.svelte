@@ -73,7 +73,7 @@
     gap: 4px;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 6px;
+    border-radius: 16px;
     padding: 12px 16px;
   }
 

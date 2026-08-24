@@ -26,7 +26,6 @@
 
 <div class="gate">
   <div class="id-card">
-    <span class="punch" aria-hidden="true"></span>
     <h1>단어 수첩 만들기</h1>
     <p class="hint">이름과 생년월일, 비밀번호를 적어주세요. 처음이면 새 수첩이 만들어지고, 다음부터는 같은 정보로 이어서 써요.</p>
 
@@ -76,23 +75,10 @@
     width: min(360px, 100%);
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 30px 28px 26px;
+    border-radius: 22px;
+    padding: 32px 28px 28px;
     box-shadow: var(--shadow-card-lift);
     text-align: center;
-  }
-
-  .punch {
-    position: absolute;
-    top: -9px;
-    left: 50%;
-    translate: -50% 0;
-    width: 46px;
-    height: 18px;
-    border-radius: 0 0 10px 10px;
-    background: var(--paper);
-    border: 1px solid var(--card-border);
-    border-top: none;
   }
 
   h1 {
@@ -150,13 +136,14 @@
   button {
     margin-top: 4px;
     font-family: var(--font-hand);
-    font-size: 17px;
-    padding: 10px 18px;
-    border-radius: 4px;
-    border: 1.5px solid var(--ink);
-    background: var(--card);
-    color: var(--ink);
-    transition: background 0.15s ease, transform 0.1s ease;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 11px 18px;
+    border-radius: 14px;
+    border: none;
+    background: var(--gradient-accent);
+    color: #ffffff;
+    transition: transform 0.1s ease, opacity 0.15s ease;
   }
 
   button:disabled {
@@ -165,7 +152,7 @@
   }
 
   button:not(:disabled):hover {
-    background: var(--gold-soft);
+    opacity: 0.92;
     transform: translateY(-1px);
   }
 </style>

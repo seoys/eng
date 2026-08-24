@@ -72,8 +72,8 @@
     align-items: center;
     gap: 12px;
     background: var(--red-soft);
-    border: 1px dashed var(--red);
-    border-radius: 6px;
+    border: 1px solid var(--red);
+    border-radius: 16px;
     padding: 12px 16px;
   }
 
@@ -108,7 +108,7 @@
     font-family: var(--font-hand);
     font-size: 14px;
     padding: 7px 14px;
-    border-radius: 4px;
+    border-radius: 10px;
     border: 1.5px solid var(--red);
     background: var(--card);
     color: var(--red);

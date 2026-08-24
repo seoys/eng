@@ -161,11 +161,9 @@
 
   .flashcard {
     position: relative;
-    background:
-      repeating-linear-gradient(var(--card) 0px, var(--card) 33px, var(--card-border) 34px);
-    background-color: var(--card);
+    background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 6px;
+    border-radius: 20px;
     padding: 30px 32px 34px;
     box-shadow: var(--shadow-card-lift);
     min-height: 280px;
@@ -393,12 +391,12 @@
   input {
     flex: 1;
     min-width: 0;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid var(--ink-soft);
-    padding: 6px 4px;
-    font-size: 20px;
-    letter-spacing: 1px;
+    background: var(--paper);
+    border: 1.5px solid var(--card-border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    font-size: 18px;
+    letter-spacing: 0.5px;
     color: var(--ink);
     text-align: center;
   }
@@ -412,16 +410,18 @@
 
   input:focus-visible {
     outline: none;
-    border-bottom-color: var(--gold);
+    border-color: var(--gold);
   }
 
   .answered-line {
     flex: 1;
     min-width: 0;
-    border-bottom: 2px solid var(--ink-soft);
-    padding: 6px 4px;
-    font-size: 20px;
-    letter-spacing: 1px;
+    background: var(--paper);
+    border: 1.5px solid var(--card-border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    font-size: 18px;
+    letter-spacing: 0.5px;
     text-align: center;
     color: var(--ink-soft);
   }
@@ -431,13 +431,14 @@
     flex-shrink: 0;
     white-space: nowrap;
     font-family: var(--font-hand);
-    font-size: 16px;
-    padding: 8px 18px;
-    border-radius: 4px;
-    border: 1.5px solid var(--ink);
-    background: var(--card);
-    color: var(--ink);
-    transition: transform 0.1s ease, background 0.15s ease;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 9px 18px;
+    border-radius: 12px;
+    border: none;
+    background: var(--gradient-accent);
+    color: #ffffff;
+    transition: transform 0.1s ease, opacity 0.15s ease;
   }
 
   .submit:disabled {
@@ -447,7 +448,7 @@
 
   .submit:not(:disabled):hover,
   .next:hover {
-    background: var(--gold-soft);
+    opacity: 0.92;
     transform: translateY(-1px);
   }
 
@@ -459,34 +460,34 @@
     flex-direction: column;
     align-items: center;
     padding: 10px 20px;
-    border: 3px double currentColor;
-    border-radius: 8px;
+    border-radius: 14px;
     font-family: var(--font-script);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    rotate: -9deg;
-    animation: stamp-down 0.28s cubic-bezier(0.2, 1.4, 0.5, 1);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    animation: stamp-down 0.24s cubic-bezier(0.2, 1, 0.4, 1);
   }
 
   .stamp.correct {
     color: var(--green);
+    background: var(--green-soft);
   }
   .stamp.close {
     color: var(--gold);
+    background: var(--gold-soft);
   }
   .stamp.wrong {
     color: var(--red);
+    background: var(--red-soft);
   }
 
   .stamp-text {
-    font-size: 26px;
+    font-size: 22px;
     line-height: 1;
   }
 
   .stamp-answer {
     font-family: var(--font-mono);
     font-size: 13px;
-    text-transform: none;
     letter-spacing: 0;
     margin-top: 4px;
   }
@@ -494,17 +495,11 @@
   @keyframes stamp-down {
     0% {
       opacity: 0;
-      scale: 1.8;
-      rotate: -9deg;
-    }
-    60% {
-      opacity: 1;
-      scale: 0.92;
+      scale: 0.8;
     }
     100% {
       opacity: 1;
       scale: 1;
-      rotate: -9deg;
     }
   }
 </style>

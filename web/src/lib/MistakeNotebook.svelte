@@ -96,17 +96,18 @@
 
   .retry {
     font-family: var(--font-hand);
+    font-weight: 700;
     font-size: 14px;
-    padding: 6px 14px;
-    border-radius: 4px;
-    border: 1.5px solid var(--ink);
-    background: var(--card);
-    color: var(--ink);
-    transition: transform 0.1s ease, background 0.15s ease;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: none;
+    background: var(--gradient-accent);
+    color: #ffffff;
+    transition: transform 0.1s ease, opacity 0.15s ease;
   }
 
   .retry:hover {
-    background: var(--gold-soft);
+    opacity: 0.92;
     transform: translateY(-1px);
   }
 
@@ -129,7 +130,7 @@
     gap: 1px;
     background: var(--card-border);
     border: 1px solid var(--card-border);
-    border-radius: 6px;
+    border-radius: 16px;
     overflow: hidden;
   }
 

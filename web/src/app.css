@@ -1,23 +1,25 @@
 :root {
-  --paper: #f4eedb;
-  --paper-line: #d9cca3;
-  --card: #fffcf2;
-  --card-border: #e4d7ae;
-  --ink: #2e2a20;
-  --ink-soft: #7c7258;
-  --red: #b6392f;
-  --red-soft: rgba(182, 57, 47, 0.12);
-  --green: #3c7a4f;
-  --green-soft: rgba(60, 122, 79, 0.13);
-  --gold: #a97c2f;
-  --gold-soft: rgba(169, 124, 47, 0.14);
-  --shadow-card: 0 2px 0 var(--card-border), 0 10px 22px -12px rgba(46, 42, 32, 0.45);
-  --shadow-card-lift: 0 4px 0 var(--card-border), 0 18px 30px -14px rgba(46, 42, 32, 0.5);
+  --paper: #f3f4fb;
+  --paper-line: #e5e6f3;
+  --card: #ffffff;
+  --card-border: #e5e6f3;
+  --ink: #201f2e;
+  --ink-soft: #635d82;
+  --red: #d6455a;
+  --red-soft: rgba(214, 69, 90, 0.1);
+  --green: #1f9d6b;
+  --green-soft: rgba(31, 157, 107, 0.12);
+  --gold: #6c63e0;
+  --gold-soft: rgba(108, 99, 224, 0.12);
+  --gradient-hero: linear-gradient(135deg, #cfe0ff 0%, #e3d3ff 50%, #ffd9ec 100%);
+  --gradient-accent: linear-gradient(135deg, #7c6ff0, #c26fe0);
+  --shadow-card: 0 1px 0 var(--card-border), 0 10px 22px -14px rgba(76, 61, 168, 0.28);
+  --shadow-card-lift: 0 1px 0 var(--card-border), 0 18px 30px -16px rgba(76, 61, 168, 0.32);
 
-  --font-hand: 'Gaegu', 'Comic Sans MS', cursive;
-  --font-script: 'Caveat', cursive;
-  --font-body: 'Gowun Dodum', 'Malgun Gothic', sans-serif;
-  --font-mono: 'Courier Prime', 'Courier New', monospace;
+  --font-hand: 'Plus Jakarta Sans', 'Apple SD Gothic Neo', sans-serif;
+  --font-script: 'Plus Jakarta Sans', 'Apple SD Gothic Neo', sans-serif;
+  --font-body: 'Manrope', 'Apple SD Gothic Neo', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
   color-scheme: light dark;
   color: var(--ink);
@@ -29,20 +31,22 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #182420;
-    --paper-line: #2c3d34;
-    --card: #1f2f28;
-    --card-border: #3a4c40;
-    --ink: #ece6d3;
-    --ink-soft: #9fae9f;
-    --red: #ff9d86;
-    --red-soft: rgba(255, 157, 134, 0.16);
-    --green: #93e0ac;
-    --green-soft: rgba(147, 224, 172, 0.16);
-    --gold: #e4c777;
-    --gold-soft: rgba(228, 199, 119, 0.16);
-    --shadow-card: 0 2px 0 var(--card-border), 0 10px 22px -12px rgba(0, 0, 0, 0.6);
-    --shadow-card-lift: 0 4px 0 var(--card-border), 0 18px 30px -14px rgba(0, 0, 0, 0.65);
+    --paper: #16151f;
+    --paper-line: #232231;
+    --card: #1e1d2b;
+    --card-border: #2c2b3f;
+    --ink: #eceafe;
+    --ink-soft: #a8a3c9;
+    --red: #ff8a8a;
+    --red-soft: rgba(255, 138, 138, 0.14);
+    --green: #7fe0ab;
+    --green-soft: rgba(127, 224, 171, 0.14);
+    --gold: #a79bff;
+    --gold-soft: rgba(167, 155, 255, 0.16);
+    --gradient-hero: linear-gradient(135deg, #2a2b52 0%, #3a2a52 50%, #4a2a45 100%);
+    --gradient-accent: linear-gradient(135deg, #7c6ff0, #b26fe0);
+    --shadow-card: 0 1px 0 var(--card-border), 0 10px 22px -14px rgba(0, 0, 0, 0.55);
+    --shadow-card-lift: 0 1px 0 var(--card-border), 0 18px 30px -16px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -52,12 +56,7 @@
 
 body {
   margin: 0;
-  background:
-    repeating-linear-gradient(
-      var(--paper) 0px,
-      var(--paper) 31px,
-      var(--paper-line) 32px
-    );
+  background: var(--paper);
   min-height: 100svh;
 }
 

@@ -49,7 +49,7 @@
   .board {
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 6px;
+    border-radius: 18px;
     padding: 18px 20px 16px;
     box-shadow: var(--shadow-card);
   }
@@ -86,7 +86,7 @@
     align-items: center;
     gap: 10px;
     padding: 7px 10px;
-    border-radius: 5px;
+    border-radius: 12px;
     font-size: 14px;
   }
 
