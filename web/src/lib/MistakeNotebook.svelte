@@ -13,6 +13,15 @@
   let expandedWordId = null;
   let exampleCache = {};
 
+  const HINT_KEY = 'eng-quiz-mistake-hint-dismissed';
+  let showHint = typeof localStorage !== 'undefined' && !localStorage.getItem(HINT_KEY);
+
+  function dismissHint() {
+    if (!showHint) return;
+    showHint = false;
+    localStorage.setItem(HINT_KEY, '1');
+  }
+
   async function load() {
     loading = true;
     errorMessage = '';
@@ -28,6 +37,7 @@
   onMount(load);
 
   async function toggleExpand(wordId) {
+    dismissHint();
     if (expandedWordId === wordId) {
       expandedWordId = null;
       return;
@@ -66,8 +76,11 @@
 {:else if mistakes.length === 0}
   <p class="loading">아직 틀린 단어가 없어요!</p>
 {:else}
+  {#if showHint}
+    <div class="hint-bubble">단어를 클릭해 보세요~</div>
+  {/if}
   <ul class="list">
-    {#each mistakes as mistake (mistake.wordId)}
+    {#each mistakes as mistake, i (mistake.wordId)}
       <li class="row">
         <button class="row-main" type="button" on:click={() => toggleExpand(mistake.wordId)}>
           <span class="word">{mistake.word}</span>
@@ -189,6 +202,42 @@
     gap: 12px;
     background: var(--card);
     padding: 4px 16px;
+  }
+
+  .hint-bubble {
+    position: relative;
+    align-self: flex-start;
+    margin: 0 0 10px 16px;
+    background: var(--gradient-accent);
+    color: #ffffff;
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 7px 14px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-card);
+    animation: hint-bounce 1.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .hint-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 22px;
+    border: 6px solid transparent;
+    border-top-color: #8b6fe0;
+  }
+
+  @keyframes hint-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
   }
 
   .row-main {
