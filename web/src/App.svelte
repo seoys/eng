@@ -121,7 +121,7 @@
 
         <ChallengeInbox bind:this={challengeInboxRef} onStartChallenge={handleStartChallenge} />
 
-        <BattleHistory bind:this={battleHistoryRef} />
+        <BattleHistory bind:this={battleHistoryRef} myUserId={auth.user.id} />
 
         <RankingBoard bind:this={rankingRef} myUserId={auth.user.id} />
 

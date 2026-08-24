@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { fetchChallenges } from './api.js';
 
+  export let myUserId;
+
   let battles = [];
   let errorMessage = '';
 
@@ -19,11 +21,32 @@
   export function refresh() {
     return load();
   }
+
+  function myOutcome(battle) {
+    const amChallenger = battle.fromUserId === myUserId;
+    if (battle.winner === 'tie') return 'tie';
+    if (amChallenger) return battle.winner === 'from' ? 'win' : 'lose';
+    return battle.winner === 'to' ? 'win' : 'lose';
+  }
+
+  $: record = battles.reduce(
+    (acc, battle) => {
+      const outcome = myOutcome(battle);
+      acc[outcome] += 1;
+      return acc;
+    },
+    { win: 0, lose: 0, tie: 0 },
+  );
 </script>
 
 {#if battles.length > 0}
   <div class="history">
     <h2>⚔️ 배틀 결과</h2>
+    <div class="record">
+      <span class="record-num win">{record.win}승</span>
+      <span class="record-num lose">{record.lose}패</span>
+      {#if record.tie > 0}<span class="record-num tie">{record.tie}무</span>{/if}
+    </div>
     <ul>
       {#each battles as battle (battle.id)}
         <li>
@@ -56,6 +79,34 @@
 
   h2 {
     font-size: 18px;
+  }
+
+  .record {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 12px 18px;
+  }
+
+  .record-num {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 17px;
+  }
+
+  .record-num.win {
+    color: var(--green);
+  }
+
+  .record-num.lose {
+    color: var(--red);
+  }
+
+  .record-num.tie {
+    color: var(--ink-soft);
   }
 
   ul {
