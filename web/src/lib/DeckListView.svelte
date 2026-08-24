@@ -19,6 +19,20 @@
   let challengeSending = false;
   let challengeSentId = null;
 
+  const HINT_KEY = 'eng-quiz-decklist-hint-dismissed';
+  let showHint = typeof localStorage !== 'undefined' && !localStorage.getItem(HINT_KEY);
+
+  function dismissHint() {
+    if (!showHint) return;
+    showHint = false;
+    localStorage.setItem(HINT_KEY, '1');
+  }
+
+  function handleSelectDeck(deck) {
+    dismissHint();
+    onSelectDeck(deck);
+  }
+
   async function loadDecks() {
     try {
       const result = await fetchDecks(page);
@@ -126,7 +140,7 @@
 
   <ul>
     {#each decks as deck (deck.id)}
-      <li class="deck-card" on:click={() => onSelectDeck(deck)}>
+      <li class="deck-card" on:click={() => handleSelectDeck(deck)}>
         <div class="deck-info">
           {#if deck.ownerName}
             <span class="owner-tag">{deck.ownerName}</span>
@@ -198,6 +212,10 @@
       {/if}
     {/each}
   </ul>
+
+  {#if showHint && total > 0}
+    <div class="hint-bubble">단어장을 클릭하면 시험을 볼 수 있어요</div>
+  {/if}
 
   {#if totalPages > 1}
     <div class="pager">
@@ -289,6 +307,42 @@
     border: 1px solid var(--card-border);
     border-radius: 16px;
     text-align: center;
+  }
+
+  .hint-bubble {
+    position: relative;
+    display: inline-block;
+    margin: 10px 0 0 16px;
+    background: var(--gradient-accent);
+    color: #ffffff;
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 7px 14px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-card);
+    animation: hint-bounce 1.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .hint-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 22px;
+    border: 6px solid transparent;
+    border-bottom-color: #8b6fe0;
+  }
+
+  @keyframes hint-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4px);
+    }
   }
 
   ul {
