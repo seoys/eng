@@ -65,7 +65,7 @@ export async function registerDeckRoutes(app) {
     );
 
     const page = Math.max(1, Number.parseInt(request.query.page, 10) || 1);
-    const pageSize = Math.min(50, Math.max(1, Number.parseInt(request.query.pageSize, 10) || 8));
+    const pageSize = Math.min(50, Math.max(1, Number.parseInt(request.query.pageSize, 10) || 5));
     const total = all.length;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const start = (page - 1) * pageSize;

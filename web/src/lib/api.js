@@ -59,7 +59,7 @@ export async function uploadDeck(files) {
   return handleResponse(response);
 }
 
-export async function fetchDecks(page = 1, pageSize = 8) {
+export async function fetchDecks(page = 1, pageSize = 5) {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   const response = await fetch(`${BASE_URL}/decks?${params}`, { headers: authHeader() });
   return handleResponse(response);

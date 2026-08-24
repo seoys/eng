@@ -329,7 +329,7 @@ test('POST /api/decks/:id/share returns 404 for a deck you do not own', async ()
   await app.close();
 });
 
-test('GET /api/decks paginates with a default page size of 8', async () => {
+test('GET /api/decks paginates with a default page size of 5', async () => {
   const app = buildApp({ visionExtractor: async () => [] });
   const { userId, authHeaders } = await registerTestUser(app);
 
@@ -340,10 +340,10 @@ test('GET /api/decks paginates with a default page size of 8', async () => {
   const firstPage = JSON.parse(
     (await app.inject({ method: 'GET', url: '/api/decks', headers: authHeaders })).body,
   );
-  assert.equal(firstPage.items.length, 8);
+  assert.equal(firstPage.items.length, 5);
   assert.equal(firstPage.total, 10);
   assert.equal(firstPage.page, 1);
-  assert.equal(firstPage.pageSize, 8);
+  assert.equal(firstPage.pageSize, 5);
   assert.equal(firstPage.totalPages, 2);
 
   const secondPage = JSON.parse(
@@ -351,7 +351,7 @@ test('GET /api/decks paginates with a default page size of 8', async () => {
       await app.inject({ method: 'GET', url: '/api/decks?page=2', headers: authHeaders })
     ).body,
   );
-  assert.equal(secondPage.items.length, 2);
+  assert.equal(secondPage.items.length, 5);
   assert.equal(secondPage.page, 2);
 
   const overflowIds = new Set([...firstPage.items, ...secondPage.items].map((d) => d.id));
