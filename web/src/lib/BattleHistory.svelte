@@ -22,6 +22,12 @@
     return load();
   }
 
+  let filter = 'all';
+
+  function toggleFilter(outcome) {
+    filter = filter === outcome ? 'all' : outcome;
+  }
+
   function myOutcome(battle) {
     const amChallenger = battle.fromUserId === myUserId;
     if (battle.winner === 'tie') return 'tie';
@@ -37,18 +43,49 @@
     },
     { win: 0, lose: 0, tie: 0 },
   );
+
+  $: filteredBattles =
+    filter === 'all' ? battles : battles.filter((battle) => myOutcome(battle) === filter);
 </script>
 
 {#if battles.length > 0}
   <div class="history">
     <h2>⚔️ 배틀 결과</h2>
     <div class="record">
-      <span class="record-num win">{record.win}승</span>
-      <span class="record-num lose">{record.lose}패</span>
-      {#if record.tie > 0}<span class="record-num tie">{record.tie}무</span>{/if}
+      <button
+        type="button"
+        class="record-num win"
+        class:active={filter === 'win'}
+        on:click={() => toggleFilter('win')}
+      >
+        {record.win}승
+      </button>
+      <button
+        type="button"
+        class="record-num lose"
+        class:active={filter === 'lose'}
+        on:click={() => toggleFilter('lose')}
+      >
+        {record.lose}패
+      </button>
+      {#if record.tie > 0}
+        <button
+          type="button"
+          class="record-num tie"
+          class:active={filter === 'tie'}
+          on:click={() => toggleFilter('tie')}
+        >
+          {record.tie}무
+        </button>
+      {/if}
+      {#if filter !== 'all'}
+        <button type="button" class="clear-filter" on:click={() => (filter = 'all')}>
+          전체 보기
+        </button>
+      {/if}
     </div>
     <ul>
-      {#each battles as battle (battle.id)}
+      {#each filteredBattles as battle (battle.id)}
         <li>
           <span class="deck-name">{battle.deckName}</span>
           <div class="matchup">
@@ -84,17 +121,23 @@
   .record {
     display: flex;
     align-items: center;
-    gap: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
     background: var(--card);
     border: 1px solid var(--card-border);
     border-radius: 16px;
-    padding: 12px 18px;
+    padding: 10px 14px;
   }
 
   .record-num {
     font-family: var(--font-hand);
     font-weight: 700;
     font-size: 17px;
+    background: none;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    padding: 4px 12px;
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
 
   .record-num.win {
@@ -107,6 +150,35 @@
 
   .record-num.tie {
     color: var(--ink-soft);
+  }
+
+  .record-num:hover {
+    background: var(--paper-line);
+  }
+
+  .record-num.win.active {
+    background: var(--green-soft);
+    border-color: var(--green);
+  }
+
+  .record-num.lose.active {
+    background: var(--red-soft);
+    border-color: var(--red);
+  }
+
+  .record-num.tie.active {
+    background: var(--paper-line);
+    border-color: var(--card-border);
+  }
+
+  .clear-filter {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    padding: 4px 6px;
   }
 
   ul {
