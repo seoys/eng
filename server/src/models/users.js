@@ -5,23 +5,29 @@ function collection() {
   return getDb().collection('users');
 }
 
-export async function findUserByNameAndBirthDate(name, birthDate) {
-  const doc = await collection().findOne({ name, birthDate });
-  if (!doc) return null;
-  return { id: doc._id.toString(), name: doc.name, birthDate: doc.birthDate, passwordHash: doc.passwordHash };
+// The name is the account identity now, so it must be unique. A unique index
+// makes that a hard guarantee even under concurrent sign-ups.
+export async function ensureUserIndexes() {
+  await collection().createIndex({ name: 1 }, { unique: true });
 }
 
-export async function createUser(name, birthDate, passwordHash) {
-  const doc = { name, birthDate, passwordHash, createdAt: new Date() };
+export async function findUserByName(name) {
+  const doc = await collection().findOne({ name });
+  if (!doc) return null;
+  return { id: doc._id.toString(), name: doc.name, passwordHash: doc.passwordHash };
+}
+
+export async function createUser(name, passwordHash) {
+  const doc = { name, passwordHash, createdAt: new Date() };
   const { insertedId } = await collection().insertOne(doc);
-  return { id: insertedId.toString(), name, birthDate };
+  return { id: insertedId.toString(), name };
 }
 
 export async function findUserById(id) {
   if (!ObjectId.isValid(id)) return null;
   const doc = await collection().findOne({ _id: new ObjectId(id) });
   if (!doc) return null;
-  return { id: doc._id.toString(), name: doc.name, birthDate: doc.birthDate };
+  return { id: doc._id.toString(), name: doc.name };
 }
 
 export async function listOtherUsers(excludeUserId) {

@@ -4,7 +4,6 @@
   export let onAuthenticated = () => {};
 
   let name = '';
-  let birthDate = '';
   let password = '';
   let submitting = false;
   let errorMessage = '';
@@ -14,7 +13,7 @@
     submitting = true;
     errorMessage = '';
     try {
-      const auth = await login({ name, birthDate, password });
+      const auth = await login({ name, password });
       onAuthenticated(auth);
     } catch (error) {
       errorMessage = error.message;
@@ -27,17 +26,12 @@
 <div class="gate">
   <div class="id-card">
     <h1>단어 수첩 만들기</h1>
-    <p class="hint">이름과 생년월일, 비밀번호를 적어주세요. 처음이면 새 수첩이 만들어지고, 다음부터는 같은 정보로 이어서 써요.</p>
+    <p class="hint">이름과 비밀번호를 정해주세요. 처음이면 새 수첩이 만들어지고, 다음부터는 같은 이름·비밀번호로 이어서 써요. 이름은 한 사람당 하나예요.</p>
 
     <form on:submit={handleSubmit}>
       <label>
         <span>이름</span>
-        <input type="text" bind:value={name} autocomplete="name" required />
-      </label>
-
-      <label>
-        <span>생년월일</span>
-        <input type="date" bind:value={birthDate} autocomplete="off" required />
+        <input type="text" bind:value={name} autocomplete="username" required />
       </label>
 
       <label>

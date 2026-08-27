@@ -10,7 +10,6 @@ export async function registerTestUser(app, overrides = {}) {
   counter += 1;
   const payload = {
     name: `테스트유저${counter}`,
-    birthDate: '2000-01-01',
     password: 'test1234',
     ...overrides,
   };

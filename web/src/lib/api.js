@@ -42,11 +42,11 @@ async function handleResponse(response) {
   return response.json();
 }
 
-export async function login({ name, birthDate, password }) {
+export async function login({ name, password }) {
   const response = await fetch(`${BASE_URL}/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, birthDate, password }),
+    body: JSON.stringify({ name, password }),
   });
   const body = await handleResponse(response);
   setAuth(body);

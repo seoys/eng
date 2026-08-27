@@ -10,6 +10,7 @@ import { registerChallengeRoutes } from './routes/challenges.js';
 import { registerUserRoutes } from './routes/users.js';
 import { registerAchievementRoutes } from './routes/achievements.js';
 import { registerMistakeRoutes } from './routes/mistakes.js';
+import { ensureUserIndexes } from './models/users.js';
 import { verifyToken } from './services/auth.js';
 
 const DEV_JWT_SECRET = 'insecure-dev-secret-change-me';
@@ -21,6 +22,10 @@ export function buildApp({
   staticDir,
 } = {}) {
   const app = Fastify({ logger: true });
+
+  // Best-effort: keep the unique-name constraint in place. Safe to call
+  // repeatedly; only meaningful once Mongo is connected.
+  ensureUserIndexes().catch((err) => app.log.warn({ err }, 'ensureUserIndexes failed'));
 
   app.register(cors, { origin: true });
   app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });

@@ -23,7 +23,7 @@ test('POST /api/auth creates a new user on first sign-in', async () => {
   const response = await app.inject({
     method: 'POST',
     url: '/api/auth',
-    payload: { name: '홍길동', birthDate: '1999-05-01', password: 'secret1' },
+    payload: { name: '홍길동', password: 'secret1' },
   });
 
   assert.equal(response.statusCode, 201);
@@ -36,7 +36,7 @@ test('POST /api/auth creates a new user on first sign-in', async () => {
 
 test('POST /api/auth logs an existing user back in with the right password', async () => {
   const app = buildApp();
-  const payload = { name: '김철수', birthDate: '1995-03-03', password: 'secret1' };
+  const payload = { name: '김철수', password: 'secret1' };
 
   await app.inject({ method: 'POST', url: '/api/auth', payload });
   const response = await app.inject({ method: 'POST', url: '/api/auth', payload });
@@ -45,25 +45,31 @@ test('POST /api/auth logs an existing user back in with the right password', asy
   const body = JSON.parse(response.body);
   assert.ok(body.token);
 
+  // The second sign-in reused the account rather than creating a duplicate.
+  assert.equal(await getDb().collection('users').countDocuments({ name: '김철수' }), 1);
+
   await app.close();
 });
 
-test('POST /api/auth rejects the wrong password for an existing user', async () => {
+test('POST /api/auth rejects a taken name when the password is wrong', async () => {
   const app = buildApp();
 
   await app.inject({
     method: 'POST',
     url: '/api/auth',
-    payload: { name: '이영희', birthDate: '2001-07-07', password: 'correct-pw' },
+    payload: { name: '이영희', password: 'correct-pw' },
   });
 
   const response = await app.inject({
     method: 'POST',
     url: '/api/auth',
-    payload: { name: '이영희', birthDate: '2001-07-07', password: 'wrong-pw' },
+    payload: { name: '이영희', password: 'different-pw' },
   });
 
   assert.equal(response.statusCode, 401);
+  assert.match(JSON.parse(response.body).error, /이름/);
+  // No second account was created for that name.
+  assert.equal(await getDb().collection('users').countDocuments({ name: '이영희' }), 1);
 
   await app.close();
 });
@@ -74,7 +80,7 @@ test('POST /api/auth returns 400 when a field is missing', async () => {
   const response = await app.inject({
     method: 'POST',
     url: '/api/auth',
-    payload: { name: '박영수', birthDate: '', password: 'secret1' },
+    payload: { name: '박영수' },
   });
 
   assert.equal(response.statusCode, 400);
@@ -82,13 +88,27 @@ test('POST /api/auth returns 400 when a field is missing', async () => {
   await app.close();
 });
 
-test('a token from one user is rejected by a request scoped to another', async () => {
+test('POST /api/auth returns 400 for a password shorter than 4 characters', async () => {
+  const app = buildApp();
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/auth',
+    payload: { name: '최민', password: '123' },
+  });
+
+  assert.equal(response.statusCode, 400);
+
+  await app.close();
+});
+
+test('a token from one user still authorizes protected routes', async () => {
   const app = buildApp();
 
   const userA = await app.inject({
     method: 'POST',
     url: '/api/auth',
-    payload: { name: '유저A', birthDate: '1990-01-01', password: 'secret1' },
+    payload: { name: '유저A', password: 'secret1' },
   });
   const tokenA = JSON.parse(userA.body).token;
 
