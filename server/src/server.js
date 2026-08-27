@@ -22,21 +22,13 @@ async function main() {
   await connectMongo(process.env.MONGODB_URI);
 
   const llmClient = createLLMClient();
+  const model = process.env.OPENAI_MODEL || 'gpt-5.5';
 
-  const visionExtractor = createVisionExtractor({
-    client: llmClient,
-    model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
-  });
+  const visionExtractor = createVisionExtractor({ client: llmClient, model });
 
-  const sentenceGenerator = createSentenceGenerator({
-    client: llmClient,
-    model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
-  });
+  const sentenceGenerator = createSentenceGenerator({ client: llmClient, model });
 
-  const wordEnricher = createWordEnricher({
-    client: llmClient,
-    model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
-  });
+  const wordEnricher = createWordEnricher({ client: llmClient, model });
 
   const staticDir = process.env.STATIC_DIR
     ? path.resolve(__dirname, '..', process.env.STATIC_DIR)
