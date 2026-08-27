@@ -429,6 +429,45 @@ test('POST /api/decks merges words from multiple images into a single deck', asy
   await app.close();
 });
 
+test('POST /api/decks drops words that repeat across images (case-insensitively)', async () => {
+  const app = buildApp({
+    visionExtractor: async (base64) => {
+      if (base64 === Buffer.from('page-one').toString('base64')) {
+        return [
+          { word: 'Apple', meaning: '사과' },
+          { word: 'pear', meaning: '배' },
+        ];
+      }
+      return [
+        { word: 'apple', meaning: '사과' },
+        { word: 'plum', meaning: '자두' },
+      ];
+    },
+  });
+  const { authHeaders } = await registerTestUser(app);
+
+  const form = new FormData();
+  form.append('file', Buffer.from('page-one'), { filename: 'p1.png', contentType: 'image/png' });
+  form.append('file', Buffer.from('page-two'), { filename: 'p2.png', contentType: 'image/png' });
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: { ...form.getHeaders(), ...authHeaders },
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = JSON.parse(response.body);
+  assert.match(body.name, /^\d{4}-\d{2}-\d{2} 단어장 1 \(3개\)$/);
+  assert.deepEqual(
+    body.words.map((w) => w.word).sort(),
+    ['Apple', 'pear', 'plum'],
+  );
+
+  await app.close();
+});
+
 test('POST /api/decks skips a failing image and still builds the deck from the rest', async () => {
   const app = buildApp({
     visionExtractor: async (base64) => {

@@ -49,7 +49,7 @@
   .board {
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 18px;
+    border-radius: var(--r);
     padding: 18px 20px 16px;
     box-shadow: var(--shadow-card);
   }
@@ -113,7 +113,8 @@
 
   .name {
     font-family: var(--font-hand);
-    font-size: 17px;
+    font-weight: 600;
+    font-size: 16px;
     flex: 1;
     color: var(--ink);
     overflow: hidden;

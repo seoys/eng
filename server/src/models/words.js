@@ -23,6 +23,11 @@ export async function insertWords(deckId, words, userId) {
   }));
 }
 
+export async function countWordsInDeck(deckId) {
+  if (!ObjectId.isValid(deckId)) return 0;
+  return collection().countDocuments({ deckId: new ObjectId(deckId) });
+}
+
 export async function getWordsByDeck(deckId, userId) {
   const docs = await collection()
     .find({ deckId: new ObjectId(deckId), userId: new ObjectId(userId) })
@@ -63,8 +68,15 @@ export async function getWordByIdUnscoped(id) {
 export async function getRandomWords(deckId, count, userId) {
   const filter = { userId: new ObjectId(userId) };
   if (deckId) filter.deckId = new ObjectId(deckId);
+
+  // A missing/invalid count means "every matching word"; $sample needs a
+  // concrete positive size, so resolve it to the real document count.
+  const size =
+    Number.isInteger(count) && count > 0 ? count : await collection().countDocuments(filter);
+  if (size === 0) return [];
+
   const docs = await collection()
-    .aggregate([{ $match: filter }, { $sample: { size: count } }])
+    .aggregate([{ $match: filter }, { $sample: { size } }])
     .toArray();
   return docs.map((doc) => ({
     wordId: doc._id.toString(),

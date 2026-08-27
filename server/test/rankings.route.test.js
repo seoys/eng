@@ -4,7 +4,7 @@ import { buildApp } from '../src/app.js';
 import { connectMongo, closeMongo, getDb } from '../src/db/mongo.js';
 import { createDeck } from '../src/models/decks.js';
 import { insertWords } from '../src/models/words.js';
-import { registerTestUser } from './testUtils.js';
+import { registerTestUser, wordList } from './testUtils.js';
 
 const TEST_URI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/eng_quiz_test';
 
@@ -38,7 +38,7 @@ test('GET /api/rankings/weekly ranks users by their best score this week', async
   const alice = await registerTestUser(app, { name: '앨리스' });
   const bob = await registerTestUser(app, { name: '밥' });
   const deck = await createDeck('랭킹덱', alice.userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await insertWords(deck.id, wordList(20), alice.userId);
   await app.inject({
     method: 'POST',
     url: `/api/decks/${deck.id}/share`,
@@ -70,7 +70,7 @@ test('a lower-percentage result with more correct answers outranks a small perfe
   const alice = await registerTestUser(app, { name: '앨리스' });
   const bob = await registerTestUser(app, { name: '밥' });
   const deck = await createDeck('랭킹덱2', alice.userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await insertWords(deck.id, wordList(20), alice.userId);
   await app.inject({ method: 'POST', url: `/api/decks/${deck.id}/share`, headers: alice.authHeaders });
 
   // Bob: 1/1 = 100% but only one correct answer.
@@ -94,7 +94,7 @@ test('ties on correct count are broken by whoever attempted more questions', asy
   const alice = await registerTestUser(app, { name: '앨리스' });
   const bob = await registerTestUser(app, { name: '밥' });
   const deck = await createDeck('랭킹덱3', alice.userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await insertWords(deck.id, wordList(20), alice.userId);
   await app.inject({ method: 'POST', url: `/api/decks/${deck.id}/share`, headers: alice.authHeaders });
 
   // Both got 15 correct, but Alice attempted more questions to get there.

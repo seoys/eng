@@ -128,12 +128,13 @@
   .back {
     display: inline-flex;
     align-items: center;
+    min-height: 40px;
     background: none;
     border: none;
     padding: 4px 2px 12px;
     margin-bottom: 4px;
-    font-family: var(--font-hand);
-    font-size: 16px;
+    font-family: var(--font-body);
+    font-size: 14px;
     color: var(--ink-soft);
     transition: color 0.15s ease, transform 0.15s ease;
   }
@@ -191,7 +192,8 @@
     gap: 1px;
     background: var(--card-border);
     border: 1px solid var(--card-border);
-    border-radius: 16px;
+    border-left: 3px solid var(--red);
+    border-radius: var(--r);
     overflow: hidden;
   }
 
@@ -227,7 +229,7 @@
     top: 100%;
     left: 22px;
     border: 6px solid transparent;
-    border-top-color: #8b6fe0;
+    border-top-color: var(--red);
   }
 
   @keyframes hint-bounce {

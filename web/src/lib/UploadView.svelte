@@ -113,13 +113,13 @@
     position: relative;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 24px 26px 22px;
+    border-radius: var(--r);
+    padding: 22px 24px 20px;
     box-shadow: var(--shadow-card);
   }
 
   h2 {
-    font-size: 22px;
+    font-size: 21px;
   }
 
   .hint {
@@ -136,9 +136,9 @@
     gap: 8px;
     padding: 26px 16px;
     border: 2px dashed var(--card-border);
-    border-radius: 14px;
+    border-radius: var(--r);
     text-align: center;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--ink-soft);
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
@@ -146,8 +146,8 @@
 
   .dropzone:hover,
   .dropzone.drag {
-    border-color: var(--gold);
-    background: var(--gold-soft);
+    border-color: var(--red);
+    background: var(--red-soft);
   }
 
   .dropzone.busy {
@@ -163,8 +163,8 @@
   }
 
   .plus {
-    font-size: 26px;
-    color: var(--gold);
+    font-size: 24px;
+    color: var(--ink-soft);
     line-height: 1;
   }
 

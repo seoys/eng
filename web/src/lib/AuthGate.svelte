@@ -67,7 +67,7 @@
   .gate {
     display: flex;
     justify-content: center;
-    padding: 60px 20px;
+    padding: 24px 4px 60px;
   }
 
   .id-card {
@@ -75,20 +75,22 @@
     width: min(360px, 100%);
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 22px;
-    padding: 32px 28px 28px;
+    border-left: 3px solid var(--red);
+    border-radius: var(--r);
+    padding: 30px 28px 26px;
     box-shadow: var(--shadow-card-lift);
     text-align: center;
   }
 
   h1 {
-    font-size: 25px;
+    font-size: 24px;
   }
 
   .hint {
     margin-top: 8px;
     font-size: 13px;
     line-height: 1.5;
+    font-family: var(--font-body);
     color: var(--ink-soft);
   }
 
@@ -107,16 +109,19 @@
   }
 
   label span {
-    font-family: var(--font-hand);
-    font-size: 15px;
-    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink-soft);
   }
 
   input {
     background: transparent;
     border: none;
-    border-bottom: 2px solid var(--card-border);
+    border-bottom: 2px solid var(--ink-soft);
+    border-radius: 0;
     padding: 6px 2px;
+    font-family: var(--font-body);
     font-size: 16px;
     color: var(--ink);
     transition: border-color 0.15s ease;
@@ -124,7 +129,7 @@
 
   input:focus-visible {
     outline: none;
-    border-bottom-color: var(--gold);
+    border-bottom-color: var(--red);
   }
 
   .error {
@@ -134,12 +139,12 @@
   }
 
   button {
-    margin-top: 4px;
-    font-family: var(--font-hand);
+    margin-top: 8px;
+    font-family: var(--font-body);
     font-weight: 700;
-    font-size: 16px;
+    font-size: 15px;
     padding: 11px 18px;
-    border-radius: 14px;
+    border-radius: var(--r);
     border: none;
     background: var(--gradient-accent);
     color: #ffffff;

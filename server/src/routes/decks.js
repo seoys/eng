@@ -8,6 +8,21 @@ import {
   shareDeck,
 } from '../models/decks.js';
 import { insertWords, getWordsByDeck } from '../models/words.js';
+import { seoulDateLabel } from '../services/datetime.js';
+
+// Multiple photos of the same page (or overlapping pages) routinely yield the
+// same word twice; keep the first occurrence of each, matched case-insensitively.
+function dedupeWords(words) {
+  const seen = new Set();
+  const unique = [];
+  for (const entry of words) {
+    const key = entry.word.trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(entry);
+  }
+  return unique;
+}
 
 export async function registerDeckRoutes(app) {
   app.post('/', { preHandler: app.authenticate }, async (request, reply) => {
@@ -39,18 +54,19 @@ export async function registerDeckRoutes(app) {
       return { error: '이미지 분석에 실패했습니다' };
     }
 
-    if (extractedWords.length === 0) {
+    const uniqueWords = dedupeWords(extractedWords);
+    if (uniqueWords.length === 0) {
       reply.code(422);
       return { error: '단어를 찾지 못했습니다' };
     }
 
     const now = new Date();
-    const dateLabel = now.toISOString().slice(0, 10);
+    const dateLabel = seoulDateLabel(now);
     const todayCount = await countDecksCreatedToday(request.userId, now);
-    const name = `${dateLabel} 단어장 ${todayCount + 1} (${extractedWords.length}개)`;
+    const name = `${dateLabel} 단어장 ${todayCount + 1} (${uniqueWords.length}개)`;
 
     const deck = await createDeck(name, request.userId);
-    const words = await insertWords(deck.id, extractedWords, request.userId);
+    const words = await insertWords(deck.id, uniqueWords, request.userId);
 
     return { id: deck.id, name: deck.name, words };
   });

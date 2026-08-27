@@ -59,8 +59,13 @@ export async function saveExampleSentence(userId, wordId, exampleSentence) {
 }
 
 export async function getRandomMistakeWords(userId, count) {
+  const filter = { userId: new ObjectId(userId) };
+  const size =
+    Number.isInteger(count) && count > 0 ? count : await collection().countDocuments(filter);
+  if (size === 0) return [];
+
   const docs = await collection()
-    .aggregate([{ $match: { userId: new ObjectId(userId) } }, { $sample: { size: count } }])
+    .aggregate([{ $match: filter }, { $sample: { size } }])
     .toArray();
   return docs.map((doc) => ({ wordId: doc.wordId.toString(), meaning: doc.meaning }));
 }

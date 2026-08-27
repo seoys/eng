@@ -1,4 +1,4 @@
-import { getRandomWords, getWordByIdUnscoped } from '../models/words.js';
+import { getRandomWords, getWordByIdUnscoped, countWordsInDeck } from '../models/words.js';
 import { getAccessibleDeck } from '../models/decks.js';
 import { gradeAnswer } from '../services/grading.js';
 import { recordQuizResult } from '../models/quizResults.js';
@@ -8,8 +8,9 @@ export async function registerQuizRoutes(app) {
   app.get('/', { preHandler: app.authenticate }, async (request, reply) => {
     const { deckId, count, source } = request.query;
     const requestedCount = Number.parseInt(count, 10);
-    // No count (or an invalid one) means "quiz on every word in the deck".
-    const parsedCount = requestedCount > 0 ? requestedCount : Number.MAX_SAFE_INTEGER;
+    // No count (or an invalid one) means "quiz on every word" — the model
+    // resolves that to the actual matching document count.
+    const parsedCount = requestedCount > 0 ? requestedCount : null;
 
     if (source === 'mistakes') {
       return getRandomMistakeWords(request.userId, parsedCount);
@@ -55,7 +56,14 @@ export async function registerQuizRoutes(app) {
   app.post('/results', { preHandler: app.authenticate }, async (request, reply) => {
     const { deckId, correct, total } = request.body ?? {};
 
-    if (!deckId || typeof correct !== 'number' || typeof total !== 'number' || total <= 0) {
+    if (
+      !deckId ||
+      !Number.isInteger(correct) ||
+      !Number.isInteger(total) ||
+      total <= 0 ||
+      correct < 0 ||
+      correct > total
+    ) {
       reply.code(400);
       return { error: '잘못된 요청입니다' };
     }
@@ -64,6 +72,14 @@ export async function registerQuizRoutes(app) {
     if (!deck) {
       reply.code(404);
       return { error: '단어장을 찾을 수 없습니다' };
+    }
+
+    // The client reports its own score; a quiz can never have more questions
+    // than the deck has words, so reject anything that claims otherwise.
+    const wordCount = await countWordsInDeck(deckId);
+    if (total > wordCount) {
+      reply.code(400);
+      return { error: '잘못된 요청입니다' };
     }
 
     return recordQuizResult(request.userId, deckId, correct, total);

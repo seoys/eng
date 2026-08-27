@@ -1,5 +1,11 @@
 let counter = 0;
 
+// A deck of `n` throwaway words, enough to satisfy the server-side check that a
+// quiz result's `total` never exceeds the deck's word count.
+export function wordList(n) {
+  return Array.from({ length: n }, (_, i) => ({ word: `w${i}`, meaning: `뜻${i}` }));
+}
+
 export async function registerTestUser(app, overrides = {}) {
   counter += 1;
   const payload = {

@@ -51,6 +51,22 @@ export async function getBestResult(userId, deckId) {
   return { score: doc.score, correct: doc.correct, total: doc.total };
 }
 
+// Best result on a deck achieved strictly after `since` — used to judge
+// challenges, which must only count attempts made once the challenge exists.
+export async function getBestResultSince(userId, deckId, since) {
+  const doc = await collection()
+    .find({
+      userId: new ObjectId(userId),
+      deckId: new ObjectId(deckId),
+      createdAt: { $gt: since },
+    })
+    .sort({ score: -1, correct: -1 })
+    .limit(1)
+    .next();
+  if (!doc) return null;
+  return { score: doc.score, correct: doc.correct, total: doc.total };
+}
+
 export async function getWeeklyLeaderboard(limit = 10) {
   const weekStart = getWeekStart();
   const results = await collection()

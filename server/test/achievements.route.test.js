@@ -4,7 +4,7 @@ import { buildApp } from '../src/app.js';
 import { connectMongo, closeMongo, getDb } from '../src/db/mongo.js';
 import { createDeck } from '../src/models/decks.js';
 import { insertWords } from '../src/models/words.js';
-import { registerTestUser } from './testUtils.js';
+import { registerTestUser, wordList } from './testUtils.js';
 
 const TEST_URI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/eng_quiz_test';
 
@@ -51,7 +51,7 @@ test('GET /api/achievements marks "first-100" earned after a perfect quiz', asyn
   const app = buildApp({ visionExtractor: async () => [] });
   const { userId, authHeaders } = await registerTestUser(app);
   const deck = await createDeck('업적덱', userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], userId);
+  await insertWords(deck.id, wordList(20), userId);
 
   await app.inject({
     method: 'POST',
@@ -101,7 +101,7 @@ test('GET /api/achievements marks "quiz-count-10" earned after ten recorded quiz
   const app = buildApp({ visionExtractor: async () => [] });
   const { userId, authHeaders } = await registerTestUser(app);
   const deck = await createDeck('반복덱', userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], userId);
+  await insertWords(deck.id, wordList(20), userId);
 
   for (let i = 0; i < 9; i += 1) {
     await app.inject({
@@ -135,7 +135,7 @@ test('GET /api/achievements marks "first-challenge-sent" earned after sending on
   const alice = await registerTestUser(app, { name: '앨리스' });
   const bob = await registerTestUser(app, { name: '밥' });
   const deck = await createDeck('도전배지덱', alice.userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await insertWords(deck.id, wordList(20), alice.userId);
 
   await app.inject({
     method: 'POST',
@@ -169,7 +169,7 @@ test('GET /api/achievements marks "challenge-winner" earned once the recipient b
   const alice = await registerTestUser(app, { name: '앨리스' });
   const bob = await registerTestUser(app, { name: '밥' });
   const deck = await createDeck('도전배지덱2', alice.userId);
-  await insertWords(deck.id, [{ word: 'a', meaning: 'ㄱ' }], alice.userId);
+  await insertWords(deck.id, wordList(20), alice.userId);
 
   await app.inject({
     method: 'POST',

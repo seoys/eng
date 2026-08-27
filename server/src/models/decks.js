@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from '../db/mongo.js';
 import { deleteMistakesForDeck } from './mistakes.js';
+import { seoulDayRange } from '../services/datetime.js';
 
 function collection() {
   return getDb().collection('decks');
@@ -23,9 +24,7 @@ export async function createDeck(name, userId) {
 }
 
 export async function countDecksCreatedToday(userId, now = new Date()) {
-  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const end = new Date(start);
-  end.setUTCDate(end.getUTCDate() + 1);
+  const { start, end } = seoulDayRange(now);
   return collection().countDocuments({
     userId: new ObjectId(userId),
     createdAt: { $gte: start, $lt: end },

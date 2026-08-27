@@ -11,6 +11,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   if (!process.env.JWT_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('JWT_SECRET must be set in production. Refusing to start with an insecure default.');
+      process.exit(1);
+    }
     console.warn('JWT_SECRET is not set — using an insecure default. Set it in server/.env.');
   }
 

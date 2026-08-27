@@ -56,12 +56,13 @@
   .back {
     display: inline-flex;
     align-items: center;
+    min-height: 40px;
     background: none;
     border: none;
     padding: 4px 2px 12px;
     margin-bottom: 4px;
-    font-family: var(--font-hand);
-    font-size: 16px;
+    font-family: var(--font-body);
+    font-size: 14px;
     color: var(--ink-soft);
     transition: color 0.15s ease, transform 0.15s ease;
   }
@@ -108,6 +109,22 @@
     gap: 16px;
   }
 
+  @media (max-width: 480px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .emoji {
+      font-size: 26px;
+    }
+
+    .badge-title {
+      font-size: 10.5px;
+    }
+  }
+
+  /* 도장판의 빈 자리 — 아직 못 받은 배지 */
   .badge {
     position: relative;
     display: flex;
@@ -117,11 +134,11 @@
     gap: 6px;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: var(--card);
+    background: transparent;
     padding: 10px;
     text-align: center;
     filter: grayscale(1);
-    opacity: 0.45;
+    opacity: 0.4;
     transition: filter 0.3s ease, opacity 0.3s ease, transform 0.15s ease;
   }
 
@@ -133,12 +150,14 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 2px solid var(--card-border);
+    border: 2px dashed var(--card-border);
   }
 
+  /* 받은 배지 — 금별 도장이 찍힌다 */
   .badge.earned {
     filter: grayscale(0);
     opacity: 1;
+    background: var(--gold-soft);
   }
 
   .badge.earned .ring {
@@ -146,14 +165,19 @@
   }
 
   .emoji {
-    font-size: 34px;
+    font-size: 32px;
     line-height: 1;
   }
 
   .badge-title {
-    font-family: var(--font-hand);
+    font-family: var(--font-body);
+    font-weight: 600;
     font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.25;
+  }
+
+  .badge.earned .badge-title {
     color: var(--ink);
-    line-height: 1.2;
   }
 </style>

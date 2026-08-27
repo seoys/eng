@@ -25,7 +25,14 @@ function authHeader() {
 
 async function handleResponse(response) {
   if (response.status === 401) {
+    const wasLoggedIn = getAuth() !== null;
     clearAuth();
+    // A 401 on a normal call means the saved token expired mid-session — tell
+    // the app so it can drop back to the login screen instead of leaving every
+    // panel showing an error until the next reload.
+    if (wasLoggedIn && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth-expired'));
+    }
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));

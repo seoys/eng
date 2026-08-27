@@ -4,7 +4,7 @@ import { buildApp } from '../src/app.js';
 import { connectMongo, closeMongo, getDb } from '../src/db/mongo.js';
 import { createDeck } from '../src/models/decks.js';
 import { insertWords } from '../src/models/words.js';
-import { registerTestUser } from './testUtils.js';
+import { registerTestUser, wordList } from './testUtils.js';
 
 const TEST_URI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/eng_quiz_test';
 
@@ -195,7 +195,7 @@ test('POST /api/quiz/results records a score for an accessible deck', async () =
   const app = buildApp({ visionExtractor: async () => [] });
   const { userId, authHeaders } = await registerTestUser(app);
   const deck = await createDeck('결과덱', userId);
-  await insertWords(deck.id, [{ word: 'grape', meaning: '포도' }], userId);
+  await insertWords(deck.id, wordList(10), userId);
 
   const response = await app.inject({
     method: 'POST',
@@ -206,6 +206,42 @@ test('POST /api/quiz/results records a score for an accessible deck', async () =
 
   assert.equal(response.statusCode, 200);
   assert.deepEqual(JSON.parse(response.body), { score: 70, correct: 7, total: 10 });
+
+  await app.close();
+});
+
+test('POST /api/quiz/results rejects a score with more correct answers than questions', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const { userId, authHeaders } = await registerTestUser(app);
+  const deck = await createDeck('부풀린덱', userId);
+  await insertWords(deck.id, wordList(10), userId);
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 11, total: 10 },
+    headers: authHeaders,
+  });
+
+  assert.equal(response.statusCode, 400);
+
+  await app.close();
+});
+
+test('POST /api/quiz/results rejects a total larger than the deck word count', async () => {
+  const app = buildApp({ visionExtractor: async () => [] });
+  const { userId, authHeaders } = await registerTestUser(app);
+  const deck = await createDeck('작은덱', userId);
+  await insertWords(deck.id, wordList(3), userId);
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/quiz/results',
+    payload: { deckId: deck.id, correct: 999, total: 999 },
+    headers: authHeaders,
+  });
+
+  assert.equal(response.statusCode, 400);
 
   await app.close();
 });

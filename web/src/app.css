@@ -1,25 +1,31 @@
 :root {
-  --paper: #f3f4fb;
-  --paper-line: #e5e6f3;
-  --card: #ffffff;
-  --card-border: #e5e6f3;
-  --ink: #201f2e;
-  --ink-soft: #635d82;
-  --red: #d6455a;
-  --red-soft: rgba(214, 69, 90, 0.1);
-  --green: #1f9d6b;
-  --green-soft: rgba(31, 157, 107, 0.12);
-  --gold: #6c63e0;
-  --gold-soft: rgba(108, 99, 224, 0.12);
-  --gradient-hero: linear-gradient(135deg, #cfe0ff 0%, #e3d3ff 50%, #ffd9ec 100%);
-  --gradient-accent: linear-gradient(135deg, #7c6ff0, #c26fe0);
-  --shadow-card: 0 1px 0 var(--card-border), 0 10px 22px -14px rgba(76, 61, 168, 0.28);
-  --shadow-card-lift: 0 1px 0 var(--card-border), 0 18px 30px -16px rgba(76, 61, 168, 0.32);
+  /* --- "채점" : 공책 종이 + 빨간 채점펜 --- */
+  --paper: #fbfaf6; /* 살짝 따뜻한 공책 흰색 */
+  --paper-line: #efece2; /* 옅은 면 구분 / 내 행 강조 */
+  --rule: #d3dcea; /* 인쇄된 파란 괘선 */
+  --card: #ffffff; /* 한 장의 속지 */
+  --card-border: #e7e2d5; /* 따뜻한 hairline */
+  --ink: #23262b; /* 연필 흑연 */
+  --ink-soft: #6e7076;
+  --red: #e5484d; /* 빨간 채점펜 — 유일한 고채도색 */
+  --red-soft: rgba(229, 72, 77, 0.1);
+  --green: #3c7a5e; /* 잉크 그린 — 라벨용, 채점엔 안 씀 */
+  --green-soft: rgba(60, 122, 94, 0.12);
+  --gold: #c99a2e; /* 금별 — 배지 / 1등 / 상단 링크 */
+  --gold-soft: rgba(201, 154, 46, 0.14);
+  --gradient-hero: linear-gradient(180deg, #ffffff, #fcf9f1);
+  --gradient-accent: linear-gradient(180deg, #e7494e, #da3b41); /* 펜 잉크 */
+  --shadow-card: 0 1px 0 var(--card-border);
+  --shadow-card-lift: 0 1px 0 var(--card-border), 0 10px 26px -18px rgba(48, 40, 22, 0.32);
 
-  --font-hand: 'Plus Jakarta Sans', 'Apple SD Gothic Neo', sans-serif;
-  --font-script: 'Plus Jakarta Sans', 'Apple SD Gothic Neo', sans-serif;
-  --font-body: 'Manrope', 'Apple SD Gothic Neo', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --r: 12px; /* 카드 radius (단일) */
+  --margin-rule: 40px; /* 왼쪽 공책 여백선 오프셋 */
+
+  /* 하나의 산세리프로 통일 — 가독성 우선. 성격은 레이아웃(여백선·괘선·빨간펜)에서 */
+  --font-hand: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif; /* 제목 / 뜻 프롬프트 (굵기·크기로 구분) */
+  --font-script: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-body: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
 
   color-scheme: light dark;
   color: var(--ink);
@@ -31,22 +37,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #16151f;
-    --paper-line: #232231;
-    --card: #1e1d2b;
-    --card-border: #2c2b3f;
-    --ink: #eceafe;
-    --ink-soft: #a8a3c9;
-    --red: #ff8a8a;
-    --red-soft: rgba(255, 138, 138, 0.14);
-    --green: #7fe0ab;
-    --green-soft: rgba(127, 224, 171, 0.14);
-    --gold: #a79bff;
-    --gold-soft: rgba(167, 155, 255, 0.16);
-    --gradient-hero: linear-gradient(135deg, #2a2b52 0%, #3a2a52 50%, #4a2a45 100%);
-    --gradient-accent: linear-gradient(135deg, #7c6ff0, #b26fe0);
-    --shadow-card: 0 1px 0 var(--card-border), 0 10px 22px -14px rgba(0, 0, 0, 0.55);
-    --shadow-card-lift: 0 1px 0 var(--card-border), 0 18px 30px -16px rgba(0, 0, 0, 0.6);
+    /* --- 책상 위 슬레이트 --- */
+    --paper: #14161a;
+    --paper-line: #22252b;
+    --rule: #2b313b;
+    --card: #1b1e23;
+    --card-border: #2c3038;
+    --ink: #e9eaec;
+    --ink-soft: #9ca0a8;
+    --red: #f2555a;
+    --red-soft: rgba(242, 85, 90, 0.15);
+    --green: #6fb58f;
+    --green-soft: rgba(111, 181, 143, 0.16);
+    --gold: #e6bb55;
+    --gold-soft: rgba(230, 187, 85, 0.16);
+    --gradient-hero: linear-gradient(180deg, #1e2127, #191b20);
+    --gradient-accent: linear-gradient(180deg, #f2555a, #e24449);
+    --shadow-card: 0 1px 0 var(--card-border);
+    --shadow-card-lift: 0 1px 0 var(--card-border), 0 12px 28px -18px rgba(0, 0, 0, 0.7);
   }
 }
 
@@ -64,7 +72,8 @@ h1,
 h2,
 h3 {
   font-family: var(--font-hand);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--ink);
   margin: 0;
 }
@@ -78,14 +87,15 @@ button {
   cursor: pointer;
 }
 
+/* 스펠링 답 · 숫자 데이터만 mono. 이름/비밀번호 등 일반 입력은 본문 폰트 */
 input {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
 }
 
 button:focus-visible,
 input:focus-visible,
 label:focus-within {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--red);
   outline-offset: 2px;
 }
 

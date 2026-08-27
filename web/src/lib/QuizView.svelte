@@ -18,6 +18,7 @@
   let loading = true;
   let errorMessage = '';
   let autoAdvanceTimer = null;
+  let submitting = false;
 
   const FEEDBACK_LABEL = { correct: '정답!', close: '근접!', wrong: '오답' };
 
@@ -46,6 +47,8 @@
   }
 
   async function submitAnswer() {
+    if (submitting || feedback) return;
+    submitting = true;
     try {
       const result = await checkAnswer(currentQuestion.wordId, currentAnswer);
       feedback = result;
@@ -53,6 +56,8 @@
       autoAdvanceTimer = setTimeout(nextQuestion, AUTO_ADVANCE_DELAY);
     } catch (error) {
       errorMessage = error.message;
+    } finally {
+      submitting = false;
     }
   }
 
@@ -84,28 +89,62 @@
   <p class="loading">카드를 꺼내는 중...</p>
 {:else if currentQuestion}
   <div class="flashcard">
+    <div class="ticks" aria-hidden="true">
+      {#each questions as _, i (i)}
+        <span class="tick" class:done={i < currentIndex} class:now={i === currentIndex}></span>
+      {/each}
+    </div>
     <span class="page-no">{currentIndex + 1} / {questions.length}</span>
 
+    <p class="prompt-label">뜻</p>
     {#key currentIndex}
       <p class="meaning {animationClass ?? ''}">{currentQuestion.meaning}</p>
     {/key}
 
-    <div class="answer-row">
+    <div class="answer-zone">
+      <div class="answer-line-wrap">
+        {#if !feedback}
+          <input
+            type="text"
+            bind:value={currentAnswer}
+            placeholder="여기에 스펠링을 써 보세요"
+            autocomplete="off"
+            spellcheck="false"
+            use:autofocus
+            on:keydown={(e) =>
+              e.key === 'Enter' && currentAnswer.trim() && !submitting && submitAnswer()}
+          />
+        {:else}
+          <div class="answered-line" class:struck={feedback.result === 'wrong'}>
+            {currentAnswer || ' '}
+          </div>
+          <svg
+            class="mark {feedback.result}"
+            viewBox="0 0 120 76"
+            preserveAspectRatio={feedback.result === 'correct' ? 'none' : 'xMidYMid meet'}
+            aria-hidden="true"
+          >
+            {#if feedback.result === 'correct'}
+              <path class="stroke" d="M60 10 C24 10 14 66 60 66 C106 66 96 10 60 10" />
+            {:else if feedback.result === 'close'}
+              <path class="stroke" d="M60 9 L104 67 L16 67 Z" />
+            {:else}
+              <path class="stroke" d="M22 14 L98 62" />
+              <path class="stroke stroke2" d="M98 14 L22 62" />
+            {/if}
+          </svg>
+        {/if}
+      </div>
+
       {#if !feedback}
-        <input
-          type="text"
-          bind:value={currentAnswer}
-          placeholder="여기에 스펠링을 써 보세요"
-          autocomplete="off"
-          spellcheck="false"
-          use:autofocus
-          on:keydown={(e) => e.key === 'Enter' && currentAnswer.trim() && submitAnswer()}
-        />
-        <button class="submit" on:click={submitAnswer} disabled={!currentAnswer.trim()}>
+        <button
+          class="submit"
+          on:click={submitAnswer}
+          disabled={!currentAnswer.trim() || submitting}
+        >
           제출
         </button>
       {:else}
-        <div class="answered-line">{currentAnswer || ' '}</div>
         <button class="next" on:click={nextQuestion}>
           {currentIndex + 1 < questions.length ? '다음 카드 →' : '결과 보기 →'}
         </button>
@@ -113,12 +152,12 @@
     </div>
 
     {#if feedback}
-      <div class="stamp {feedback.result}">
-        <span class="stamp-text">{FEEDBACK_LABEL[feedback.result]}</span>
+      <p class="verdict {feedback.result}" role="status">
+        <span class="verdict-label">{FEEDBACK_LABEL[feedback.result]}</span>
         {#if feedback.result !== 'correct'}
-          <span class="stamp-answer">{feedback.correctSpelling}</span>
+          <span class="verdict-answer">정답 <b>{feedback.correctSpelling}</b></span>
         {/if}
-      </div>
+      </p>
     {/if}
   </div>
 {:else if !errorMessage}
@@ -131,12 +170,13 @@
   .back {
     display: inline-flex;
     align-items: center;
+    min-height: 40px;
     background: none;
     border: none;
     padding: 4px 2px 12px;
     margin-bottom: 4px;
-    font-family: var(--font-hand);
-    font-size: 16px;
+    font-family: var(--font-body);
+    font-size: 14px;
     color: var(--ink-soft);
     transition: color 0.15s ease, transform 0.15s ease;
   }
@@ -154,7 +194,7 @@
   .loading {
     color: var(--ink-soft);
     text-align: center;
-    padding: 40px 0;
+    padding: 48px 0;
     font-family: var(--font-hand);
     font-size: 18px;
   }
@@ -163,30 +203,75 @@
     position: relative;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 30px 32px 34px;
+    border-radius: var(--r);
+    padding: 34px 30px 30px;
     box-shadow: var(--shadow-card-lift);
-    min-height: 280px;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 26px;
+    gap: 22px;
     overflow: hidden;
+  }
+
+  @media (max-width: 480px) {
+    .flashcard {
+      min-height: 240px;
+      padding: 30px 18px 24px;
+    }
+  }
+
+  .ticks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 3px;
+    padding: 12px 14px 0;
+  }
+
+  .tick {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--rule);
+    transition: background 0.2s ease, opacity 0.2s ease;
+  }
+
+  .tick.done {
+    background: var(--red);
+    opacity: 0.45;
+  }
+
+  .tick.now {
+    background: var(--red);
   }
 
   .page-no {
     position: absolute;
-    top: 14px;
-    right: 18px;
+    top: 18px;
+    right: 16px;
     font-family: var(--font-mono);
     font-size: 12px;
     color: var(--ink-soft);
   }
 
+  .prompt-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: -12px;
+  }
+
   .meaning {
     font-family: var(--font-hand);
-    font-size: 40px;
+    font-weight: 700;
+    font-size: clamp(28px, 7vw, 38px);
+    letter-spacing: -0.02em;
     color: var(--ink);
     text-align: center;
     line-height: 1.3;
@@ -381,48 +466,65 @@
     }
   }
 
-  .answer-row {
+  .answer-zone {
     width: 100%;
-    max-width: 380px;
+    max-width: 340px;
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .answer-line-wrap {
+    position: relative;
+    width: 100%;
+    display: flex;
   }
 
   input {
     flex: 1;
     min-width: 0;
-    background: var(--paper);
-    border: 1.5px solid var(--card-border);
-    border-radius: 12px;
-    padding: 9px 12px;
-    font-size: 18px;
-    letter-spacing: 0.5px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--ink-soft);
+    border-radius: 0;
+    padding: 8px 4px;
+    font-family: var(--font-mono);
+    font-size: 20px;
+    letter-spacing: 1px;
     color: var(--ink);
     text-align: center;
   }
 
   input::placeholder {
     font-family: var(--font-body);
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0;
     color: var(--ink-soft);
     opacity: 0.7;
   }
 
   input:focus-visible {
     outline: none;
-    border-color: var(--gold);
+    border-bottom-color: var(--red);
   }
 
   .answered-line {
     flex: 1;
     min-width: 0;
-    background: var(--paper);
-    border: 1.5px solid var(--card-border);
-    border-radius: 12px;
-    padding: 9px 12px;
-    font-size: 18px;
-    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--ink-soft);
+    padding: 8px 4px;
+    font-family: var(--font-mono);
+    font-size: 20px;
+    letter-spacing: 1px;
     text-align: center;
+    color: var(--ink);
+  }
+
+  .answered-line.struck {
+    text-decoration: line-through;
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 2px;
     color: var(--ink-soft);
   }
 
@@ -430,11 +532,12 @@
   .next {
     flex-shrink: 0;
     white-space: nowrap;
-    font-family: var(--font-hand);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: 15px;
-    padding: 9px 18px;
-    border-radius: 12px;
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: var(--r);
     border: none;
     background: var(--gradient-accent);
     color: #ffffff;
@@ -442,7 +545,7 @@
   }
 
   .submit:disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: not-allowed;
   }
 
@@ -452,54 +555,108 @@
     transform: translateY(-1px);
   }
 
-  .stamp {
+  /* 빨간 채점펜 마크 — 답 위에 그려진다 */
+  .mark {
     position: absolute;
-    right: 18px;
-    bottom: 20px;
+    top: 50%;
+    left: 50%;
+    width: 116px;
+    height: 74px;
+    transform: translate(-50%, -58%) rotate(-4deg);
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .mark .stroke {
+    fill: none;
+    stroke: var(--red);
+    stroke-width: 5;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 360;
+    stroke-dashoffset: 360;
+    animation: draw 0.45s cubic-bezier(0.6, 0.1, 0.3, 1) forwards;
+  }
+
+  /* 정답은 단어 전체를 크게 감싸는 동그라미 */
+  .mark.correct {
+    width: min(230px, 92%);
+    height: 60px;
+    transform: translate(-50%, -52%) rotate(-2deg);
+  }
+
+  .mark.close .stroke {
+    stroke: var(--gold);
+  }
+
+  .mark .stroke2 {
+    animation-delay: 0.2s;
+  }
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .verdict {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px 20px;
-    border-radius: 14px;
-    font-family: var(--font-script);
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    animation: stamp-down 0.24s cubic-bezier(0.2, 1, 0.4, 1);
+    gap: 3px;
+    margin-top: 2px;
+    animation: verdict-in 0.2s ease both;
+    animation-delay: 0.32s;
   }
 
-  .stamp.correct {
+  .verdict-label {
+    font-family: var(--font-hand);
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  .verdict.correct .verdict-label {
     color: var(--green);
-    background: var(--green-soft);
   }
-  .stamp.close {
+  .verdict.close .verdict-label {
     color: var(--gold);
-    background: var(--gold-soft);
   }
-  .stamp.wrong {
+  .verdict.wrong .verdict-label {
     color: var(--red);
-    background: var(--red-soft);
   }
 
-  .stamp-text {
-    font-size: 22px;
-    line-height: 1;
+  .verdict-answer {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--ink-soft);
   }
 
-  .stamp-answer {
+  .verdict-answer b {
     font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 0;
-    margin-top: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--ink);
   }
 
-  @keyframes stamp-down {
-    0% {
+  @keyframes verdict-in {
+    from {
       opacity: 0;
-      scale: 0.8;
+      transform: translateY(4px);
     }
-    100% {
+    to {
       opacity: 1;
-      scale: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mark .stroke {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .verdict {
+      animation: none;
     }
   }
 </style>

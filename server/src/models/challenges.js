@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from '../db/mongo.js';
-import { getBestResult } from './quizResults.js';
+import { getBestResultSince } from './quizResults.js';
 
 function collection() {
   return getDb().collection('challenges');
@@ -52,7 +52,7 @@ export async function listReceivedChallenges(userId) {
 
   const pending = [];
   for (const challenge of challenges) {
-    const myBest = await getBestResult(userId, challenge.deckId);
+    const myBest = await getBestResultSince(userId, challenge.deckId, challenge.createdAt);
     if (!myBest || myBest.score <= challenge.targetScore) {
       pending.push(challenge);
     }
@@ -77,7 +77,11 @@ export async function listBattles(userId) {
 
   const battles = [];
   for (const challenge of challenges) {
-    const result = await getBestResult(challenge.toUserId, challenge.deckId);
+    const result = await getBestResultSince(
+      challenge.toUserId,
+      challenge.deckId,
+      challenge.createdAt,
+    );
     if (!result) continue;
 
     let winner;

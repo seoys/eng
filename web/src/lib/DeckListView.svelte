@@ -140,14 +140,19 @@
 
   <ul>
     {#each decks as deck (deck.id)}
-      <li class="deck-card" on:click={() => handleSelectDeck(deck)}>
-        <div class="deck-info">
+      <li class="deck-card">
+        <button
+          type="button"
+          class="deck-info"
+          aria-label="{deck.name} 시험 보기"
+          on:click={() => handleSelectDeck(deck)}
+        >
           {#if deck.ownerName}
             <span class="owner-tag">{deck.ownerName}</span>
           {/if}
           <span class="deck-name">{deck.name}</span>
           <span class="deck-count">{deck.wordCount}개</span>
-        </div>
+        </button>
 
         <div class="actions">
           <button
@@ -161,16 +166,17 @@
 
           {#if !deck.ownerName}
             {#if deck.shared}
-              <span class="shared-badge">공유됨</span>
+              <span class="shared-badge">✓ 공유됨</span>
             {:else}
               <button
                 class="share"
                 type="button"
-                aria-label="{deck.name} 공유"
+                aria-label="{deck.name} 다른 사람에게 공유하기"
                 disabled={sharingId === deck.id}
                 on:click={(e) => handleShare(e, deck)}
               >
-                공유
+                <span aria-hidden="true">👥</span>
+                {sharingId === deck.id ? '공유 중…' : '공유하기'}
               </button>
             {/if}
             <button
@@ -186,7 +192,7 @@
       </li>
 
       {#if openChallengeId === deck.id}
-        <li class="challenge-picker" on:click={(e) => e.stopPropagation()}>
+        <li class="challenge-picker">
           <span class="picker-label">"{deck.name}"에서 내 최고 점수에 도전장 보내기</span>
           <div class="picker-row">
             <select bind:value={challengeTarget}>
@@ -332,7 +338,7 @@
     bottom: 100%;
     left: 22px;
     border: 6px solid transparent;
-    border-bottom-color: #8b6fe0;
+    border-bottom-color: var(--red);
   }
 
   @keyframes hint-bounce {
@@ -361,16 +367,17 @@
     gap: 12px;
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 14px 18px;
-    box-shadow: var(--shadow-card);
-    cursor: pointer;
+    border-left: 3px solid var(--red);
+    border-radius: var(--r);
+    padding: 15px 18px;
+    box-shadow: var(--shadow-card-lift);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .deck-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-lift);
+  .deck-card:hover,
+  .deck-card:focus-within {
+    transform: translateX(2px);
+    box-shadow: var(--shadow-card-lift), -3px 0 0 var(--red-soft);
   }
 
   .deck-info {
@@ -379,6 +386,13 @@
     align-items: baseline;
     gap: 10px;
     min-width: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
   }
 
   .owner-tag {
@@ -394,7 +408,8 @@
 
   .deck-name {
     font-family: var(--font-hand);
-    font-size: 19px;
+    font-weight: 600;
+    font-size: 18px;
     color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -430,24 +445,28 @@
   }
 
   .share {
-    background: none;
-    border: 1px solid var(--card-border);
-    color: var(--ink-soft);
-    font-family: var(--font-hand);
-    font-size: 13px;
-    padding: 3px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--red-soft);
+    border: 1.5px solid var(--red);
+    color: var(--red);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 12px;
     border-radius: 999px;
     line-height: 1.4;
+    white-space: nowrap;
   }
 
   .share:hover:not(:disabled) {
-    color: var(--gold);
-    border-color: var(--gold);
-    background: var(--gold-soft);
+    background: var(--red);
+    color: #fff;
   }
 
   .share:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: progress;
   }
 
@@ -537,5 +556,31 @@
     font-size: 13px;
     color: var(--green);
     margin-top: -6px;
+  }
+
+  /* On a phone the row is too narrow for owner-tag + name + count + actions on
+     one line — stack the info so the deck name is actually readable. */
+  @media (max-width: 480px) {
+    .deck-card {
+      align-items: stretch;
+      padding: 13px 14px;
+    }
+
+    .deck-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .deck-name {
+      white-space: normal;
+      overflow: visible;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .actions {
+      align-items: flex-start;
+    }
   }
 </style>
