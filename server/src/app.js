@@ -18,6 +18,7 @@ const DEV_JWT_SECRET = 'insecure-dev-secret-change-me';
 export function buildApp({
   visionExtractor,
   sentenceGenerator,
+  wordEnricher,
   jwtSecret = DEV_JWT_SECRET,
   staticDir,
 } = {}) {
@@ -32,6 +33,7 @@ export function buildApp({
 
   app.decorate('visionExtractor', visionExtractor);
   app.decorate('sentenceGenerator', sentenceGenerator);
+  app.decorate('wordEnricher', wordEnricher ?? null);
 
   app.decorate('authenticate', async (request, reply) => {
     const header = request.headers.authorization;

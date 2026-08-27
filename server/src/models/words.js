@@ -6,12 +6,13 @@ function collection() {
 }
 
 export async function insertWords(deckId, words, userId) {
-  const docs = words.map(({ word, meaning, animation }) => ({
+  const docs = words.map(({ word, meaning, animation, enrichment }) => ({
     deckId: new ObjectId(deckId),
     userId: new ObjectId(userId),
     word,
     meaning,
     animation: animation || 'none',
+    enrichment: enrichment ?? null,
     createdAt: new Date(),
   }));
   const { insertedIds } = await collection().insertMany(docs);
@@ -20,6 +21,7 @@ export async function insertWords(deckId, words, userId) {
     word: doc.word,
     meaning: doc.meaning,
     animation: doc.animation,
+    enrichment: doc.enrichment,
   }));
 }
 
@@ -37,6 +39,7 @@ export async function getWordsByDeck(deckId, userId) {
     word: doc.word,
     meaning: doc.meaning,
     animation: doc.animation || 'none',
+    enrichment: doc.enrichment ?? null,
   }));
 }
 

@@ -468,6 +468,78 @@ test('POST /api/decks drops words that repeat across images (case-insensitively)
   await app.close();
 });
 
+test('POST /api/decks attaches enrichment from the word enricher and persists it', async () => {
+  const enrichment = {
+    mnemonic: '펭귄은 "펜을 귄다"!',
+    syllables: 'pen·guin',
+    soundTip: '',
+    confusables: [],
+    clozeSentence: 'The ___ waddled across the ice.',
+    difficulty: 3,
+  };
+  const app = buildApp({
+    visionExtractor: async () => [{ word: 'penguin', meaning: '펭귄' }],
+    wordEnricher: async (words) => {
+      assert.deepEqual(
+        words.map((w) => w.word),
+        ['penguin'],
+      );
+      return new Map([['penguin', enrichment]]);
+    },
+  });
+  const { authHeaders } = await registerTestUser(app);
+
+  const form = new FormData();
+  form.append('file', Buffer.from('img'), { filename: 'p.png', contentType: 'image/png' });
+
+  const uploadRes = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: { ...form.getHeaders(), ...authHeaders },
+  });
+  assert.equal(uploadRes.statusCode, 200);
+  const deck = JSON.parse(uploadRes.body);
+  assert.deepEqual(deck.words[0].enrichment, enrichment);
+
+  // It survived the round-trip to Mongo.
+  const wordsRes = await app.inject({
+    method: 'GET',
+    url: `/api/decks/${deck.id}/words`,
+    headers: authHeaders,
+  });
+  assert.deepEqual(JSON.parse(wordsRes.body)[0].enrichment, enrichment);
+
+  await app.close();
+});
+
+test('POST /api/decks still succeeds when enrichment throws', async () => {
+  const app = buildApp({
+    visionExtractor: async () => [{ word: 'grape', meaning: '포도' }],
+    wordEnricher: async () => {
+      throw new Error('enricher down');
+    },
+  });
+  const { authHeaders } = await registerTestUser(app);
+
+  const form = new FormData();
+  form.append('file', Buffer.from('img'), { filename: 'p.png', contentType: 'image/png' });
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/decks',
+    payload: form,
+    headers: { ...form.getHeaders(), ...authHeaders },
+  });
+
+  assert.equal(res.statusCode, 200);
+  const body = JSON.parse(res.body);
+  assert.equal(body.words[0].word, 'grape');
+  assert.equal(body.words[0].enrichment, null);
+
+  await app.close();
+});
+
 test('POST /api/decks skips a failing image and still builds the deck from the rest', async () => {
   const app = buildApp({
     visionExtractor: async (base64) => {

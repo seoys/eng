@@ -6,6 +6,7 @@ import { connectMongo } from './db/mongo.js';
 import { createLLMClient } from './services/llmClient.js';
 import { createVisionExtractor } from './services/visionExtract.js';
 import { createSentenceGenerator } from './services/exampleSentence.js';
+import { createWordEnricher } from './services/wordEnrich.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +33,11 @@ async function main() {
     model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
   });
 
+  const wordEnricher = createWordEnricher({
+    client: llmClient,
+    model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
+  });
+
   const staticDir = process.env.STATIC_DIR
     ? path.resolve(__dirname, '..', process.env.STATIC_DIR)
     : undefined;
@@ -39,6 +45,7 @@ async function main() {
   const app = buildApp({
     visionExtractor,
     sentenceGenerator,
+    wordEnricher,
     jwtSecret: process.env.JWT_SECRET,
     staticDir,
   });

@@ -87,20 +87,25 @@
     <ul class="preview">
       {#each previewWords as word (word.id)}
         <li>
-          {#if canSpeak()}
-            <button
-              class="speak"
-              type="button"
-              aria-label="{word.word} 발음 듣기"
-              on:click={() => speakWord(word.word)}
-            >
-              🔊
-            </button>
-          {/if}
-          <span class="w">{word.word}</span>
-          <span class="m">{word.meaning}</span>
-          {#if getPreviewEmoji(word.animation)}
-            <span class="anim-tag" title="퀴즈에서 글씨가 움직여요">{getPreviewEmoji(word.animation)}</span>
+          <div class="row">
+            {#if canSpeak()}
+              <button
+                class="speak"
+                type="button"
+                aria-label="{word.word} 발음 듣기"
+                on:click={() => speakWord(word.word)}
+              >
+                🔊
+              </button>
+            {/if}
+            <span class="w">{word.word}</span>
+            <span class="m">{word.meaning}</span>
+            {#if getPreviewEmoji(word.animation)}
+              <span class="anim-tag" title="퀴즈에서 글씨가 움직여요">{getPreviewEmoji(word.animation)}</span>
+            {/if}
+          </div>
+          {#if word.enrichment?.mnemonic}
+            <p class="mnemo">💡 {word.enrichment.mnemonic}</p>
           {/if}
         </li>
       {/each}
@@ -218,17 +223,30 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 180px;
+    max-height: 260px;
     overflow-y: auto;
   }
 
   .preview li {
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 5px 2px;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 2px;
     border-bottom: 1px dotted var(--card-border);
     font-size: 14px;
+  }
+
+  .preview .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .mnemo {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink-soft);
   }
 
   .w {

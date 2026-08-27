@@ -60,13 +60,28 @@ export async function registerDeckRoutes(app) {
       return { error: '단어를 찾지 못했습니다' };
     }
 
+    // Best-effort memory aids, generated once for the whole upload. A failure
+    // (or no enricher wired up) just means the words go in without enrichment.
+    let enrichmentByWord = new Map();
+    if (app.wordEnricher) {
+      try {
+        enrichmentByWord = await app.wordEnricher(uniqueWords);
+      } catch (error) {
+        app.log.warn(error, 'word enrichment failed; saving words without it');
+      }
+    }
+    const enrichedWords = uniqueWords.map((entry) => ({
+      ...entry,
+      enrichment: enrichmentByWord.get(entry.word.trim().toLowerCase()) ?? null,
+    }));
+
     const now = new Date();
     const dateLabel = seoulDateLabel(now);
     const todayCount = await countDecksCreatedToday(request.userId, now);
-    const name = `${dateLabel} 단어장 ${todayCount + 1} (${uniqueWords.length}개)`;
+    const name = `${dateLabel} 단어장 ${todayCount + 1} (${enrichedWords.length}개)`;
 
     const deck = await createDeck(name, request.userId);
-    const words = await insertWords(deck.id, uniqueWords, request.userId);
+    const words = await insertWords(deck.id, enrichedWords, request.userId);
 
     return { id: deck.id, name: deck.name, words };
   });
